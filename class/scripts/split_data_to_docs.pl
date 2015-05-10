@@ -13,6 +13,8 @@ if (defined $doc_idx_file) {
 }
 
 my $line_num = 0;
+my $sents_in_doc = 0;
+my $doc_part = 1;
 my $prev_doc_id;
 my $out_fh;
 
@@ -29,27 +31,30 @@ while (my $line = <STDIN>) {
         $doc_id =~ s/([^.]*)\..*$/$1/;
         if (!defined $prev_doc_id || ($doc_id ne $prev_doc_id)) {
             $new_doc = 1;
+            $doc_part = 1;
         }
         $prev_doc_id = $doc_id;
     }
-    else {
-        if ($line_num % $sents_per_doc == 0) {
-            $new_doc = 1;
-            $prev_doc_id = sprintf "%08d", $line_num / $sents_per_doc;
-        }
+    
+    if ($sents_in_doc >= $sents_per_doc) {
+        $new_doc = 1;
+        $doc_part++;
+        #$prev_doc_id = sprintf "%08d", $line_num / $sents_per_doc;
     }
 
     if ($new_doc) {
         if (defined $out_fh) {
             close $out_fh;
         }
-        my $out_path = $out_dir . "/doc_" . $prev_doc_id . ".txt";
+        my $out_path = $out_dir . "/doc_" . ($prev_doc_id // "") . "_" . sprintf("%04d", $doc_part) . ".txt";
         #print STDERR $out_path . "\n";
         open $out_fh, ">", $out_path;
+        $sents_in_doc = 0;
     }
 
     print $out_fh $line;
 
+    $sents_in_doc++;
     $line_num++;
 }
 if (defined $out_fh) {
