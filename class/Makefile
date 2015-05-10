@@ -4,7 +4,7 @@ ORIG_TRAIN_DATA_NAMES = Europarl IWSLT14 NCv9
 TREEX = PERL5LIB=$$PERL5LIB:$$PWD/lib treex
 
 ifeq ($(LRC),1)
-LRC_FLAG=-p --jobs 200 --qsub '-hard -l mem_free=2G -l act_mem_free=2G -l h_vmem=2G'
+LRC_FLAG=-p --jobs 200 --qsub '-hard -l mem_free=4G -l act_mem_free=4G -l h_vmem=4G'
 endif
 
 
