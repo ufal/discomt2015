@@ -35,6 +35,8 @@ tables/%/done : trees/%/done
 tables/%.data.gz : tables/%/done
 	find $(dir $<) -name '*.txt' | sort | xargs cat | gzip -c > $@
 
+.PRECIOUS : input/%/done trees/%/done tables/%/done
+
 TRAIN_DATA=tables/Europarl.data.gz
 TEST_DATA=tables/TEDdev.data.gz
 
