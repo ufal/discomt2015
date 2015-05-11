@@ -5,3 +5,4 @@
 /discomt_baseline.py
 /discoMT_scorer.pl
 /*.log
+*.pyc
