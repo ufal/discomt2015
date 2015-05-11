@@ -16,6 +16,7 @@ my $line_num = 0;
 my $sents_in_doc = 0;
 my $doc_part = 1;
 my $prev_doc_id;
+my $new_doc = 1;
 my $out_fh;
 
 while (my $line = <STDIN>) {
@@ -23,7 +24,6 @@ while (my $line = <STDIN>) {
         print STDERR "Processed lines: " . $line_num . "\n";
     }
 
-    my $new_doc = 0;
     if (defined $doc_idx_fh) {
         my $doc_idx_line = <$doc_idx_fh>;
         my ($doc_id) = split /\t/, $doc_idx_line;
@@ -56,6 +56,7 @@ while (my $line = <STDIN>) {
 
     $sents_in_doc++;
     $line_num++;
+    $new_doc = 0;
 }
 if (defined $out_fh) {
     close $out_fh;
