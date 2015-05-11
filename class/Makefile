@@ -4,7 +4,7 @@ ORIG_TRAIN_DATA_NAMES = Europarl IWSLT14 NCv9
 TREEX = PERL5LIB=$$PERL5LIB:$$PWD/lib treex
 
 ifeq ($(LRC),1)
-LRC_FLAG=-p --jobs 200 --qsub '-hard -l mem_free=6G -l act_mem_free=6G -l h_vmem=6G'
+LRC_FLAG=-p --jobs 100 --qsub '-hard -l mem_free=6G -l act_mem_free=6G -l h_vmem=6G'
 endif
 
 
@@ -24,7 +24,7 @@ trees/%/done : input/%/done
 tables/%/done : trees/%/done
 	mkdir -p $(dir $@); \
 	$(TREEX) $(LRC_FLAG) -Ssrc -Lfr \
-		Read::Treex from='!$(dir $<)/*.streex' \
+		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.txt}' \
 		Print::ExtractDiscomt2015Table extension=".txt" path=$(dir $@)
 	touch $@
 
