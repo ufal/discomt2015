@@ -31,4 +31,8 @@ tables/%/done : trees/%/done
 		Print::ExtractDiscomt2015Table extension=".txt" path=$(dir $@)
 	touch $@
 
-prepare_dev_data : tables/TEDdev/done
+tables/%.data.gz : tables/%/done
+	find $(dir $<) -name '*.txt' | sort | xargs cat | gzip -c > $@
+
+prepare_train_data : tables/Europarl.data.gz
+prepare_dev_data : tables/TEDdev.data.gz
