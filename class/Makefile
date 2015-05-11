@@ -3,6 +3,7 @@ ORIG_TRAIN_DATA_NAMES = Europarl IWSLT14 NCv9
 
 TREEX = PERL5LIB=$$PERL5LIB:$$PWD/lib treex
 
+LRC=1
 ifeq ($(LRC),1)
 LRC_FLAG=-p --jobs 100 --qsub '-hard -l mem_free=6G -l act_mem_free=6G -l h_vmem=6G'
 endif
@@ -34,5 +35,22 @@ tables/%/done : trees/%/done
 tables/%.data.gz : tables/%/done
 	find $(dir $<) -name '*.txt' | sort | xargs cat | gzip -c > $@
 
-prepare_train_data : tables/Europarl.data.gz
-prepare_dev_data : tables/TEDdev.data.gz
+TRAIN_DATA=tables/Europarl.data.gz
+TEST_DATA=tables/TEDdev.data.gz
+
+prepare_train_data : $(TRAIN_DATA)
+prepare_dev_data : $(TEST_DATA)
+
+#FEATSET_LIST=conf/$(LANGUAGE).featset_list
+
+train_test :
+	$(ML_FRAMEWORK_DIR)/run.sh -f conf/params.ini \
+		EXPERIMENT_TYPE=train_test \
+		DATA_LIST="TRAIN_DATA TEST_DATA" \
+		TEST_DATA_LIST="TRAIN_DATA TEST_DATA" \
+		TRAIN_DATA=$(TRAIN_DATA) \
+		TEST_DATA=$(TEST_DATA) \
+		ML_METHOD_LIST=conf/ml_method.list \
+		LRC=$(LRC) \
+		TMP_DIR=ml_runs \
+		D="$(D)"
