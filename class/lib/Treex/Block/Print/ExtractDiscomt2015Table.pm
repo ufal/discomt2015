@@ -54,17 +54,20 @@ sub get_shared_feats {
     my ($en_nodes, $ali_types) = Treex::Tool::Align::Utils::get_aligned_nodes_by_filter($fr_anode, {language => 'en', selector => 'src'});
     my $en_node = shift @$en_nodes;
 
-    my $feats = [];
-    push @$feats, "lemma=".$en_node->lemma;
-    push @$feats, $self->kenlm_probs($fr_anode);
-    
-    return $feats;
+    my @feats = ();
+    push @feats, "lemma=".$en_node->lemma;
+    push @feats, $self->kenlm_probs($fr_anode);
+
+    my $feat_str = join " ", @feats;
+   
+    # return with a namespace
+    return "s $feat_str";
 }
 
 sub get_class_feats {
     my ($self) = @_;
 
-    my @class_feats = map {["trg_class=$_"]} @CLASSES;
+    my @class_feats = map {"t trg_class=$_"} @CLASSES;
     return \@class_feats;
 }
 
@@ -80,7 +83,7 @@ sub kenlm_probs {
     my $form = $fr_anode->form;
 
     my $scores = $self->_scores_from_kenlm->{$form};
-    my @feats = map {['kenlm_'.$_->[0], kenlm_binning($_->[1])]} @$scores;
+    my @feats = map {'kenlm_'.$_->[0].'='.kenlm_binning($_->[1])} @$scores;
     return @feats;
 }
 
