@@ -83,7 +83,7 @@ sub kenlm_probs {
     my $form = $fr_anode->form;
 
     my $scores = $self->_scores_from_kenlm->{$form};
-    my @feats = map {'kenlm_'.$_->[0].'='.kenlm_binning($_->[1])} @$scores;
+    my @feats = map {'kenlm_w_prob='.$_->[0].'_'.kenlm_binning($_->[1])} @$scores;
     return @feats;
 }
 
