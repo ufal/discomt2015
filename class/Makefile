@@ -10,7 +10,10 @@ endif
 
 input/%/done : data/input/%.data.gz
 	mkdir -p $(dir $@); \
-	zcat $< | scripts/split_data_to_docs.pl $(dir $@) data/input/$*.en-fr.doc-ids.gz
+	if [ -f data/input/$*.en-fr.doc-ids.gz ]; then \
+		ids_file=data/input/$*.en-fr.doc-ids.gz; \
+	fi; \
+	zcat $< | scripts/split_data_to_docs.pl $(dir $@) $$ids_file
 	touch $@ 
 
 trees/%/done : input/%/done
@@ -28,3 +31,4 @@ tables/%/done : trees/%/done
 		Print::ExtractDiscomt2015Table extension=".txt" path=$(dir $@)
 	touch $@
 
+prepare_dev_data : tables/TEDdev/done
