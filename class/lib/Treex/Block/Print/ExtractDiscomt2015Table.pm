@@ -96,9 +96,13 @@ before 'process_zone' => sub {
     $sent =~ s/\"/\\\"/g;
     my $result = $self->_python->command('sent = "'. $sent . '"'."\nmodel.score_sentence(sent)");
     if ($result) {
-        my ($label, @words) = split /\t/, $result;
-        my @word_scores = map {[split / /, $_]} @words;
-        $self->_set_scores_from_kenlm({$label => \@word_scores});
+        my $all_scores = {};
+        foreach my $line (split /\n/, $result) {
+            my ($label, @words) = split /\t/, $line;
+            my @word_scores = map {[split / /, $_]} @words;
+            $all_scores->{$label} = \@word_scores;
+        }
+        $self->_set_scores_from_kenlm($all_scores);
     }
 };
 
@@ -116,7 +120,6 @@ sub process_anode {
 
     my $instance_str = Treex::Tool::ML::VowpalWabbit::Util::format_multiline($feats, $losses);
     print {$self->_file_handle} $instance_str;
-    print {$self->_file_handle} "\n";
 }
 
 1;
