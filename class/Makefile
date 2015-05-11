@@ -4,7 +4,7 @@ ORIG_TRAIN_DATA_NAMES = Europarl IWSLT14 NCv9
 TREEX = PERL5LIB=$$PERL5LIB:$$PWD/lib treex
 
 ifeq ($(LRC),1)
-LRC_FLAG=-p --jobs 200 --qsub '-hard -l mem_free=4G -l act_mem_free=4G -l h_vmem=4G'
+LRC_FLAG=-p --jobs 200 --qsub '-hard -l mem_free=6G -l act_mem_free=6G -l h_vmem=6G'
 endif
 
 
@@ -16,13 +16,15 @@ input/%/done : data/input/%.data.gz
 trees/%/done : input/%/done
 	mkdir -p $(dir $@); \
 	$(TREEX) $(LRC_FLAG) -Ssrc \
-		Read::Discomt2015 from='!$(dir $<)/*.txt' langs='en,fr' skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.treex.gz}' \
+		Read::Discomt2015 from='!$(dir $<)/*.txt' langs='en,fr' skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.streex}' \
 		scen/en.analysis.scen \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
-tables/% : trees/%
-	mkdir -p $@; \
-	$(TREEX) -Ssrc \
-		Read::Treex from='!$</*.treex.gz' \
+tables/%/done : trees/%/done
+	mkdir -p $(dir $@); \
+	$(TREEX) $(LRC_FLAG) -Ssrc -Lfr \
+		Read::Treex from='!$(dir $<)/*.streex' \
+		Print::ExtractDiscomt2015Table extension=".txt" path=$(dir $@)
+	touch $@
 
