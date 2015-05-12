@@ -23,7 +23,7 @@ open my $fh_orig, "<:gzip:utf8", $orig_data;
 while (my $orig_line = <$fh_orig>) {
     chomp $orig_line;
     my ($class, $miss_word, $en_sent, $fr_sent, $ali) = split /\t/, $orig_line;
-    my $replace_num = scalar(split /REPLACE_[0-9]+/, $fr_sent) - 1;
+    my $replace_num = scalar(split /REPLACE_[0-9]+/, $fr_sent, -1) - 1;
 
     my @scores_per_instance = ();
     while ($replace_num && (my $res_line = <STDIN>)) {
