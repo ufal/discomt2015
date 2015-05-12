@@ -2,42 +2,42 @@
 #vw.ranking:mc --loss_function logistic --passes 10 --initial_weight 0 --feature_mask tmp/ml/run_2015-04-07.testing_on_English_nonshared_regularized_learning_rates/run_2015-04-07_01-20-06_17745.testing_on_English_nonshared_regularized/001.8f801ad5b1.featset/018.6d48c.mlmethod/model/train_00-18.pcedt_bi.en.analysed.nonshared.vw.ranking.model
 #vw.ranking:mc --loss_function logistic --passes 10 --feature_mask tmp/ml/run_2015-04-07.testing_on_English_nonshared_regularized_learning_rates/run_2015-04-07_01-20-06_17745.testing_on_English_nonshared_regularized/001.8f801ad5b1.featset/017.a1ada.mlmethod/model/train_00-18.pcedt_bi.en.analysed.nonshared.vw.ranking.model
 #vw.ranking:mc --loss_function logistic --passes 10 --feature_mask tmp/ml/run_2015-04-07.testing_on_English_nonshared_regularized_learning_rates/run_2015-04-07_01-20-06_17745.testing_on_English_nonshared_regularized/001.8f801ad5b1.featset/018.6d48c.mlmethod/model/train_00-18.pcedt_bi.en.analysed.nonshared.vw.ranking.model
-vw.ranking:mc --loss_function logistic --passes 30
-vw.ranking:mc --loss_function logistic --passes 10
-vw.ranking:mc --loss_function logistic --passes 10 --l1 0.0000005
-vw.ranking:mc --loss_function logistic --passes 10 --l1 0.0000003
+vw.ranking:mc --loss_function logistic -q st --passes 30
+vw.ranking:mc --loss_function logistic -q st --passes 10
+vw.ranking:mc --loss_function logistic -q st --passes 10 --l1 0.0000005
+vw.ranking:mc --loss_function logistic -q st --passes 10 --l1 0.0000003
 #sklearn-ranking.knn:n_neighbors=3
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=1
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.5
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.1
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.05
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.01
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.005
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.001
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.0005
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.0001
-sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.00005
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=1
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.5
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.1
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.05
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.01
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.005
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.001
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.0005
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.0001
-sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.00005
-sklearn-ranking.naive_bayes
-sklearn-ranking.perceptron
-sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.005
-sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.001
-sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.0005
-sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.0001
-sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.00005
-sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.00001
-sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.005
-sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.001
-sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.0005
-sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.0001
-sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.00005
-sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.00001
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=1
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.5
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.1
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.05
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.01
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.005
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.001
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.0005
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.0001
+#sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.00005
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=1
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.5
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.1
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.05
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.01
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.005
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.001
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.0005
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.0001
+#sklearn-ranking.log_regression:penalty=&quot;l2&quot;,C=0.00005
+#sklearn-ranking.naive_bayes
+#sklearn-ranking.perceptron
+#sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.005
+#sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.001
+#sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.0005
+#sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.0001
+#sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.00005
+#sklearn-ranking.perceptron:penalty=&quot;l1&quot;,alpha=0.00001
+#sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.005
+#sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.001
+#sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.0005
+#sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.0001
+#sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.00005
+#sklearn-ranking.perceptron:penalty=&quot;l2&quot;,alpha=0.00001
