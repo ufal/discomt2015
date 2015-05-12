@@ -56,3 +56,10 @@ train_test :
 		LRC=$(LRC) \
 		TMP_DIR=ml_runs \
 		D="$(D)"
+
+ORIG_TEST_DATA=data/input/TEDdev.data.gz
+
+eval : $(RESULT)
+	name=`echo "$<" | perl -ne '$$_ =~ s|^ml_runs/||; $$_ =~ s|/result/.*$$||; $$_ =~ s|/|_|g; print $$_;'`; \
+	cat $< | scripts/vw_res_to_official_res.pl $(ORIG_TEST_DATA) > res/$$name.res; \
+	./discoMT_scorer.pl $(ORIG_TEST_DATA) res/$$name.res
