@@ -21,6 +21,7 @@ trees/%/done : input/%/done
 	mkdir -p $(dir $@); \
 	$(TREEX) $(LRC_FLAG) -Ssrc \
 		Read::Discomt2015 from='!$(dir $<)/*.txt' langs='en,fr' skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.streex}' \
+		scen/fr.analysis.scen \
 		scen/en.analysis.scen \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
