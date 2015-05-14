@@ -1,3 +1,5 @@
 Util::SetGlobal language=fr
 
-W2A::FR::TagStanford
+W2A::FR::TagMElt
+#W2A::FR::TagStanford
+#W2A::FR::ParseMalt
