@@ -27,11 +27,15 @@ on
 /;
 
 my @KENLM_PROB_BINS = (0.001, 0.01, 0.1, 0.3, 0.5, 0.7, 0.9, 1);
+my @KENLM_RANK_BINS = (1, 2, 3, 5, 10, 20);
+my @KENLM_RANK_3_BINS = (4);
+my @KENLM_RANK_5_BINS = (6);
 my @NADA_PROB_BINS = @KENLM_PROB_BINS;
 
 sub binning {
     my ($value, @bins) = @_;
     my $idx = scalar(grep {$_ < $value} @bins);
+    return "Inf" if ($idx == scalar @bins);
     return $bins[$idx];
 }
 
@@ -72,9 +76,10 @@ sub get_shared_feats {
 
     push @feats, $self->get_en_feats($en_main_anode, $en_anodes);
     push @feats, $self->get_fr_feats($fr_anode);
-    push @feats, $self->get_fr_feats_over_en_antes($en_main_anode);
+    push @feats, $self->get_fr_feats_over_en_nodes($en_main_anode);
+    push @feats, $self->combine_feats(\@feats);
 
-    my $feat_str = join " ", @feats;
+    my $feat_str = join " ", map {$_->[0] . "=" . $_->[1]} @feats;
    
     # return with a namespace
     return "s $feat_str";
@@ -114,7 +119,7 @@ sub get_en_feats {
 # FEAT: [en|fr]_lemma=*
 sub get_morpho_feats {
     my ($self, $anodes, $lang, $is_main) = @_;
-    return map {$lang.'_'.($is_main ? 'main_' : '').'lemma='.$_->lemma} @$anodes;
+    return map {[$lang.'_'.($is_main ? 'main_' : '').'lemma', $_->lemma]} @$anodes;
 }
 
 # FEAT: en_nada_refer=*
@@ -131,8 +136,8 @@ sub get_nada_feats {
     return if (!defined $is_refer || !defined $is_refer_prob);
 
     my @feats = ();
-    push @feats, 'en_nada_refer='.$is_refer;
-    push @feats, 'en_nada_refer_prob='.binning($is_refer_prob, @NADA_PROB_BINS);
+    push @feats, ['en_nada_refer', $is_refer];
+    push @feats, ['en_nada_refer_prob', binning($is_refer_prob, @NADA_PROB_BINS)];
 
     return @feats;
 }
@@ -170,12 +175,23 @@ sub kenlm_probs {
     my $form = $fr_anode->form;
 
     my $scores = $self->_scores_from_kenlm->{$form};
-    my @feats = map {'kenlm_w_prob='.$_->[0].'_'.binning($_->[1], @KENLM_PROB_BINS)} @$scores;
-    push @feats, map {'kenlm_w_rank='.$scores->[$_][0].'_'.($_+1)} 0 .. $#$scores;
+    my @feats = map {['kenlm_w_prob', $_->[0].'_'.binning($_->[1], @KENLM_PROB_BINS)]} @$scores;
+    push @feats, map {['kenlm_w_rank', $scores->[$_][0].'_'.binning($_+1, @KENLM_RANK_BINS)]} 0 .. $#$scores;
+    push @feats, map {['kenlm_w_rank_3', $scores->[$_][0].'_'.binning($_+1, @KENLM_RANK_3_BINS)]} 0 .. $#$scores;
+    push @feats, map {['kenlm_w_rank_5', $scores->[$_][0].'_'.binning($_+1, @KENLM_RANK_5_BINS)]} 0 .. $#$scores;
     return @feats;
 }
 
-##################### FEATURES OVER ENGLISH COREFERENCE ################################
+##################### FEATURES OVER ENGLISH NODES ################################
+
+sub get_fr_feats_over_en_nodes {
+    my ($self, $en_anode) = @_;
+
+    my @feats = ();
+    push @feats, $self->get_fr_feats_over_en_antes($en_anode);
+    push @feats, $self->get_fr_feats_over_en_par($en_anode);
+    return @feats;
+}
 
 # FEAT: fr_n_antes_over_en_count=*
 # FEAT: fr_closest_ante_over_en_mfeats=*
@@ -198,24 +214,78 @@ sub get_fr_feats_over_en_antes {
         @fr_noun_antes = grep {($_->conll_cpos // "") eq "N"} grep {defined $_} @fr_antes;
     }
 
-    return ("fr_n_antes_over_en_count=0") if (!@fr_noun_antes);
+    return (["fr_n_antes_over_en_count", 0]) if (!@fr_noun_antes);
 
     my $fr_closest_ante = $fr_noun_antes[0];
 
     my @feats = ();
 
     my $mfeats = $fr_closest_ante->wild->{mfeats};
-    push @feats, "fr_closest_ante_over_en_mfeats=".$mfeats;
+    push @feats, ["fr_closest_ante_over_en_mfeats", $mfeats];
     my @split_mfeats = split /\|/, $mfeats;
     my ($gender) = map {$_ =~ s/^g=//; $_} grep {$_ =~ /^g=/} @split_mfeats;
     my ($number) = map {$_ =~ s/^n=//; $_} grep {$_ =~ /^n=/} @split_mfeats;
     $gender = $gender // "undef";
     $number = $number // "undef";
-    push @feats, "fr_closest_ante_over_en_gender=".$gender;
-    push @feats, "fr_closest_ante_over_en_number=".$number;
-    push @feats, "fr_closest_ante_over_en_gender_number=".$gender.$number;
+    push @feats, ["fr_closest_ante_over_en_gender", $gender];
+    push @feats, ["fr_closest_ante_over_en_number", $number];
+    push @feats, ["fr_closest_ante_over_en_gender_number", $gender.$number];
 
     return @feats;
+}
+
+# FEAT: fr_par_over_en_lemma=*
+sub get_fr_feats_over_en_par {
+    my ($self, $en_anode) = @_;
+    my $en_par = $en_anode->get_parent();
+    return if (!defined $en_par);
+    my @fr_pars = Treex::Tool::Align::Utils::aligned_transitively([$en_par], [{language => 'fr'}]);
+    
+    my @feats;
+
+    my @lemmas = map {$_->lemma} @fr_pars;
+    my @cposs = map {$_->conll_cpos} @fr_pars;
+    push @feats, map {['fr_par_over_en_lemma', $_]} @lemmas;
+    push @feats, map {['fr_par_over_en_cpos', $_]} @cposs;
+
+    return @feats;
+}
+
+##################### COMBINED FEATURES ################################
+
+sub combine_feats {
+    my ($self, $feats_array) = @_;
+
+    my $feats_hash = _feats_array_to_hash($feats_array);
+
+    my @feats = ();
+    push @feats, $self->combine_kenlm_nada($feats_hash);
+    return @feats;
+}
+
+sub combine_kenlm_nada {
+    my ($feats_hash) = @_;
+
+    # take words ranked at 1-3 position
+    my @kenlm_first_three = grep {$_ =~ /^4/} @{$feats_hash->{kenlm_w_rank_3}};
+    my $nada_ref = $feats_hash->{en_nada_refer} // [ 'undef' ];
+
+    return map {['comb_nada_kenlm_rank_3', $nada_ref->[0] . "_" . $_]} @kenlm_first_three;
+}
+
+sub _feats_array_to_hash {
+    my ($feats_array) = @_;
+    my %feat_hash = ();
+    foreach my $feat (@$feats_array) {
+        my $val = $feat_hash{$feat->[0]};
+        if (defined $val) {
+            push @$val, $feat->[1];
+        }
+        else {
+            $feat_hash{$feat->[0]} = [ $feat->[1] ];
+        }
+    }
+    return \%feat_hash;
 }
 
 before 'process_zone' => sub {
