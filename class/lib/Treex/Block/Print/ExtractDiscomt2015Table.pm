@@ -274,7 +274,7 @@ sub get_fr_feats_over_en_par {
 
     my @lemmas = map {$_->lemma} @fr_pars;
     my @cposs = map {$_->conll_cpos} @fr_pars;
-    push @feats, map {['fr_par_over_en_lemma', $_ =~ /^REPLACE/ ? "replace" : $_]} @lemmas;
+    push @feats, map {['fr_par_over_en_lemma', $_ =~ /^REPLACE/i ? "replace" : $_]} @lemmas;
     push @feats, map {['fr_par_over_en_cpos', $_]} @cposs;
 
     return @feats;
