@@ -1,0 +1,4 @@
+Util::SetGlobal language=en
+
+Coref::RemoveLinks type=text
+A2T::EN::MarkTextCoref

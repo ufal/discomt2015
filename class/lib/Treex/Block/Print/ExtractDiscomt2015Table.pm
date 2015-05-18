@@ -120,7 +120,7 @@ sub get_morpho_feats {
 # FEAT: en_nada_refer=*
 # FEAT: en_nada_refer_prob=*
 sub get_nada_feats {
-    my ($self, $en_node) = @_;
+    my ($self, $en_anode) = @_;
 
     my ($en_tnode) = $en_anode->get_referencing_nodes('a/lex.rf');
     return if (!defined $en_tnode);
@@ -185,10 +185,18 @@ sub kenlm_probs {
 sub get_fr_feats_over_en_antes {
     my ($self, $en_anode) = @_;
 
+    my @fr_noun_antes;
     my @en_a_antes = $self->get_en_a_antes($en_anode);
-    my $fr_antes = Treex::Tool::Align::Utils::aligned_transitively(\@en_a_antes, [{language => 'fr'}]);
-    # select only French nouns
-    my @fr_noun_antes = grep {$_->conll_cpos eq "N"} @$fr_antes;
+    if (@en_a_antes) {
+        my @fr_antes = Treex::Tool::Align::Utils::aligned_transitively(\@en_a_antes, [{language => 'fr'}]);
+        # select only French nouns
+        foreach (@fr_antes) {
+            if (!defined $_->conll_cpos) {
+                print STDERR $_->tag . "\n";
+            }
+        }
+        @fr_noun_antes = grep {($_->conll_cpos // "") eq "N"} grep {defined $_} @fr_antes;
+    }
 
     return ("fr_n_antes_over_en_count=0") if (!@fr_noun_antes);
 
@@ -199,8 +207,10 @@ sub get_fr_feats_over_en_antes {
     my $mfeats = $fr_closest_ante->wild->{mfeats};
     push @feats, "fr_closest_ante_over_en_mfeats=".$mfeats;
     my @split_mfeats = split /\|/, $mfeats;
-    my ($gender) = map {$_ =~ s/^g=//} grep {$_ =~ /^g=/} @split_mfeats;
-    my ($number) = map {$_ =~ s/^n=//} grep {$_ =~ /^n=/} @split_mfeats;
+    my ($gender) = map {$_ =~ s/^g=//; $_} grep {$_ =~ /^g=/} @split_mfeats;
+    my ($number) = map {$_ =~ s/^n=//; $_} grep {$_ =~ /^n=/} @split_mfeats;
+    $gender = $gender // "undef";
+    $number = $number // "undef";
     push @feats, "fr_closest_ante_over_en_gender=".$gender;
     push @feats, "fr_closest_ante_over_en_number=".$number;
     push @feats, "fr_closest_ante_over_en_gender_number=".$gender.$number;

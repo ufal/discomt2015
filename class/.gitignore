@@ -1,10 +1,13 @@
 /data
 /input
 /trees
+/trees_coref
+/trees_fr
 /tables
 /res
 /ml_runs
 /discomt_baseline.py
 /discoMT_scorer.pl
 /*.log
+/_Inline
 *.pyc

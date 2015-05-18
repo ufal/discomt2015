@@ -5,7 +5,7 @@ TREEX = PERL5LIB=$$PERL5LIB:$$PWD/lib treex
 
 LRC=1
 ifeq ($(LRC),1)
-LRC_FLAG=-p --jobs 100 --qsub '-hard -l mem_free=6G -l act_mem_free=6G -l h_vmem=6G'
+LRC_FLAG=-p --jobs 100 --qsub '-hard -l mem_free=20G -l act_mem_free=20G -l h_vmem=20G'
 endif
 
 
@@ -21,12 +21,27 @@ trees/%/done : input/%/done
 	mkdir -p $(dir $@); \
 	$(TREEX) $(LRC_FLAG) -Ssrc \
 		Read::Discomt2015 from='!$(dir $<)/*.txt' langs='en,fr' skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.streex}' \
-		scen/fr.analysis.scen \
 		scen/en.analysis.scen \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
-tables/%/done : trees/%/done
+trees_coref/%/done : trees/%/done
+	mkdir -p $(dir $@); \
+	$(TREEX) $(LRC_FLAG) -Ssrc \
+		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.streex}' \
+		scen/coref.scen \
+		Write::Treex path=$(dir $@) storable=1
+	touch $@
+
+trees_fr/%/done : trees_coref/%/done
+	mkdir -p $(dir $@); \
+	$(TREEX) $(LRC_FLAG) -Ssrc \
+		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.streex}' \
+		scen/fr.analysis.scen \
+		Write::Treex path=$(dir $@) storable=1
+	touch $@
+
+tables/%/done : trees_fr/%/done
 	mkdir -p $(dir $@); \
 	$(TREEX) $(LRC_FLAG) -Ssrc -Lfr \
 		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.txt}' \
