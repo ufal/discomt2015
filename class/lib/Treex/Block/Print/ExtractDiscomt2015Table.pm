@@ -26,10 +26,11 @@ on
 ça
 /;
 
+my @EN_NODES_COUNT_BINS = (0, 1);
 my @KENLM_PROB_BINS = (0.001, 0.01, 0.1, 0.3, 0.5, 0.7, 0.9, 1);
 my @KENLM_RANK_BINS = (1, 2, 3, 5, 10, 20);
-my @KENLM_RANK_3_BINS = (4);
-my @KENLM_RANK_5_BINS = (6);
+my @KENLM_RANK_3_BINS = (3);
+my @KENLM_RANK_5_BINS = (5);
 my @NADA_PROB_BINS = @KENLM_PROB_BINS;
 
 sub binning {
@@ -104,13 +105,16 @@ sub get_main_en_node {
 
 ###################### ENGLISH FEATURES ###################################################
 
+# FEAT: en_anodes_aligned_count=*
 sub get_en_feats {
     my ($self, $en_main_anode, $en_anodes) = @_;
 
     my @en_feats = ();
 
+    push @en_feats, ['en_anodes_aligned_count', binning(scalar(@$en_anodes),@EN_NODES_COUNT_BINS)];
     push @en_feats, $self->get_morpho_feats([$en_main_anode], 'en', 1);
     push @en_feats, $self->get_morpho_feats($en_anodes, 'en');
+    push @en_feats, $self->get_synt_feats($en_main_anode);
     push @en_feats, $self->get_nada_feats($en_main_anode);
 
     return @en_feats;
@@ -120,6 +124,31 @@ sub get_en_feats {
 sub get_morpho_feats {
     my ($self, $anodes, $lang, $is_main) = @_;
     return map {[$lang.'_'.($is_main ? 'main_' : '').'lemma', $_->lemma]} @$anodes;
+}
+
+sub get_synt_feats {
+    my ($self, $en_anode) = @_;
+    my $par = $en_anode->get_parent;
+    return if (!defined $par);
+
+    my @feats = ();
+    push @feats, [ 'en_par_lemma', $par->lemma ];
+    push @feats, [ 'en_afun', $en_anode->afun ];
+    push @feats, [ 'en_par_lemma_self_afun', $par->lemma .'_'. $en_anode->afun ];
+    push @feats, [ 'en_par_lemma_self_afun_lemma', $par->lemma .'_'. $en_anode->afun . '_' . $en_anode->lemma ];
+
+    my ($en_tnode) = $en_anode->get_referencing_nodes('a/lex.rf');
+    return @feats if (!defined $en_tnode);
+
+    push @feats, [ 'en_fun', $en_tnode->functor ];
+    my ($en_tpar) = $en_tnode->get_parent();
+    return @feats if (!defined $en_tpar);
+
+    push @feats, [ 'en_par_tlemma_self_fun', $en_tpar->t_lemma . '_'. $en_tnode->functor ];
+    push @feats, [ 'en_par_tlemma_self_fun_tlemma', $en_tpar->t_lemma . '_'. $en_tnode->functor . '_' . $en_tnode->t_lemma ];
+    push @feats, [ 'en_par_tlemma_self_fun_lemma', $en_tpar->t_lemma . '_'. $en_tnode->functor . '_' . $en_anode->lemma ];
+
+    return @feats;
 }
 
 # FEAT: en_nada_refer=*
@@ -245,7 +274,7 @@ sub get_fr_feats_over_en_par {
 
     my @lemmas = map {$_->lemma} @fr_pars;
     my @cposs = map {$_->conll_cpos} @fr_pars;
-    push @feats, map {['fr_par_over_en_lemma', $_]} @lemmas;
+    push @feats, map {['fr_par_over_en_lemma', $_ =~ /^REPLACE/ ? "replace" : $_]} @lemmas;
     push @feats, map {['fr_par_over_en_cpos', $_]} @cposs;
 
     return @feats;
