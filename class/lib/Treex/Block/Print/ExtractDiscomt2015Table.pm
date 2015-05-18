@@ -344,8 +344,11 @@ sub process_anode {
     my $shared_feats = $self->get_shared_feats($fr_anode);
     my $feats = [ $class_feats, $shared_feats ];
     my $losses = $self->get_losses($class);
+    my $en_sent = $fr_anode->get_bundle->get_zone('en',$self->selector)->sentence;
+    $en_sent =~ s/\t/ /g;
+    my $comments = [[], $fr_anode->get_address() . " " . $en_sent ];
 
-    my $instance_str = Treex::Tool::ML::VowpalWabbit::Util::format_multiline($feats, $losses);
+    my $instance_str = Treex::Tool::ML::VowpalWabbit::Util::format_multiline($feats, $losses, $comments);
     print {$self->_file_handle} $instance_str;
 }
 
