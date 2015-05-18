@@ -51,7 +51,7 @@ tables/%/done : trees_fr/%/done
 tables/%.data.gz : tables/%/done
 	find $(dir $<) -name '*.txt' | sort | xargs cat | gzip -c > $@
 
-.PRECIOUS : input/%/done trees/%/done tables/%/done
+.PRECIOUS : input/%/done trees/%/done trees_coref/%/done trees_fr/%/done tables/%/done
 
 TRAIN_DATA=tables/Europarl.data.gz
 TEST_DATA=tables/TEDdev.data.gz
