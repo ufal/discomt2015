@@ -129,7 +129,7 @@ sub get_morpho_feats {
 sub get_synt_feats {
     my ($self, $en_anode) = @_;
     my $par = $en_anode->get_parent;
-    return if (!defined $par);
+    return if (!defined $par || $par->is_root());
 
     my @feats = ();
     push @feats, [ 'en_par_lemma', $par->lemma ];
@@ -141,8 +141,8 @@ sub get_synt_feats {
     return @feats if (!defined $en_tnode);
 
     push @feats, [ 'en_fun', $en_tnode->functor ];
-    my ($en_tpar) = $en_tnode->get_parent();
-    return @feats if (!defined $en_tpar);
+    my $en_tpar = $en_tnode->get_parent();
+    return @feats if (!defined $en_tpar || $en_tpar->is_root());
 
     push @feats, [ 'en_par_tlemma_self_fun', $en_tpar->t_lemma . '_'. $en_tnode->functor ];
     push @feats, [ 'en_par_tlemma_self_fun_tlemma', $en_tpar->t_lemma . '_'. $en_tnode->functor . '_' . $en_tnode->t_lemma ];
