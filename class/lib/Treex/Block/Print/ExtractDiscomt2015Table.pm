@@ -63,7 +63,7 @@ CODE
 sub get_losses {
     my ($self, $class) = @_;
 
-    my @losses = map {$_ eq $class ? $CLASSES_LOSSES{$_} : 1} keys %CLASSES_LOSSES;
+    my @losses = map {($_ eq $class) ? $CLASSES_LOSSES{$_} : 1} keys %CLASSES_LOSSES;
     return \@losses;
 }
 
@@ -89,7 +89,7 @@ sub get_shared_feats {
 sub get_class_feats {
     my ($self) = @_;
 
-    my @class_feats = map {"t trg_class=$_"} %CLASSES_LOSSES;
+    my @class_feats = map {"t trg_class=$_"} keys %CLASSES_LOSSES;
     return \@class_feats;
 }
 
