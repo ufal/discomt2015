@@ -14,17 +14,17 @@ has '_scores_from_kenlm' => (is => 'rw', isa => 'HashRef');
 
 has '_python' => (is => 'ro', isa => 'Treex::Tool::Python::RunFunc', builder => '_build_python');
 
-my @CLASSES = qw/
-OTHER
-il
-ce
-elle
-ils
-elles
-cela
-on
-ça
-/;
+my %CLASSES_LOSSES = (
+'OTHER' => 0.390,
+'il' => 0.277,
+'ce' => 0.089,
+'elle' => 0.087,
+'ils' => 0.085,
+'elles' => 0.032,
+'cela' => 0.023,
+'on' => 0.017,
+'ça' => 0.001,
+);
 
 my @EN_NODES_COUNT_BINS = (0, 1);
 my @KENLM_PROB_BINS = (0.001, 0.01, 0.1, 0.3, 0.5, 0.7, 0.9, 1);
@@ -63,7 +63,7 @@ CODE
 sub get_losses {
     my ($self, $class) = @_;
 
-    my @losses = map {$_ eq $class ? 0 : 1} @CLASSES;
+    my @losses = map {$_ eq $class ? $CLASSES_LOSSES{$_} : 1} keys %CLASSES_LOSSES;
     return \@losses;
 }
 
@@ -89,7 +89,7 @@ sub get_shared_feats {
 sub get_class_feats {
     my ($self) = @_;
 
-    my @class_feats = map {"t trg_class=$_"} @CLASSES;
+    my @class_feats = map {"t trg_class=$_"} %CLASSES_LOSSES;
     return \@class_feats;
 }
 
@@ -320,7 +320,8 @@ sub _feats_array_to_hash {
 before 'process_zone' => sub {
     my ($self, $zone) = @_;
     my $sent = $zone->sentence();
-    $sent =~ s/\"/\\\"/g;
+    $sent =~ s/\\/\\\\/g;
+    $sent =~ s/"/\\"/g;
     my $result = $self->_python->command('sent = "'. $sent . '"'."\nmodel.score_sentence(sent)");
     if ($result) {
         my $all_scores = {};
