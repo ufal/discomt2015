@@ -3,9 +3,11 @@
 #vw.ranking:mc --loss_function logistic --passes 10 --feature_mask tmp/ml/run_2015-04-07.testing_on_English_nonshared_regularized_learning_rates/run_2015-04-07_01-20-06_17745.testing_on_English_nonshared_regularized/001.8f801ad5b1.featset/017.a1ada.mlmethod/model/train_00-18.pcedt_bi.en.analysed.nonshared.vw.ranking.model
 #vw.ranking:mc --loss_function logistic --passes 10 --feature_mask tmp/ml/run_2015-04-07.testing_on_English_nonshared_regularized_learning_rates/run_2015-04-07_01-20-06_17745.testing_on_English_nonshared_regularized/001.8f801ad5b1.featset/018.6d48c.mlmethod/model/train_00-18.pcedt_bi.en.analysed.nonshared.vw.ranking.model
 #vw.ranking:mc --loss_function logistic -q st --passes 30
-vw.ranking:mc --loss_function logistic -q st --passes 10
-vw.ranking:mc --loss_function logistic -q st --passes 10 --l1 0.0000005
-vw.ranking:mc --loss_function logistic -q st --passes 10 --l1 0.0000003
+vw.ranking:mc --loss_function logistic -q st
+vw.ranking:mc --loss_function logistic -q st --passes 3
+vw.ranking:mc --loss_function logistic -q st --passes 5
+#vw.ranking:mc --loss_function logistic -q st --passes 10 --l1 0.0000005
+#vw.ranking:mc --loss_function logistic -q st --passes 10 --l1 0.0000003
 #sklearn-ranking.knn:n_neighbors=3
 #sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=1
 #sklearn-ranking.log_regression:penalty=&quot;l1&quot;,C=0.5
