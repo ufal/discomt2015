@@ -53,8 +53,11 @@ tables/%.data.gz : tables/%/done
 
 .PRECIOUS : input/%/done trees/%/done trees_coref/%/done trees_fr/%/done tables/%/done
 
-TRAIN_DATA=tables/Europarl.data.gz
+TRAIN_DATA=tables/train.data.gz
 TEST_DATA=tables/TEDdev.data.gz
+
+$(TRAIN_DATA) : tables/Europarl.data.gz tables/NCv9.data.gz
+	zcat $^ | gzip -c > $@
 
 prepare_train_data : $(TRAIN_DATA)
 prepare_dev_data : $(TEST_DATA)
@@ -74,6 +77,10 @@ train_test :
 		D="$(D)"
 
 ORIG_TEST_DATA=data/input/TEDdev.data.gz
+
+#$(RESULT).adjusted : $(RESULT)
+#	cat $< | scripts/postprocess_vw_results.pl > $@
+#eval : $(RESULT).adjusted
 
 eval : $(RESULT)
 	name=`echo "$<" | perl -ne '$$_ =~ s|^ml_runs/||; $$_ =~ s|/result/.*$$||; $$_ =~ s|/|_|g; print $$_;'`; \
