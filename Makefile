@@ -1,3 +1,10 @@
+SHELL=/bin/bash
+TRANSL_PAIR=fr-en
+TRG_LANG:=$(shell echo $(TRANSL_PAIR) | cut -f2 -d'-')
+
+ORIG_TEST_DATA=data/input/TEDdev.$(TRANSL_PAIR).data.filtered.gz
+
+
 ORIG_TRAIN_DATA_NAMES = Europarl IWSLT14 NCv9
 
 
@@ -9,10 +16,10 @@ LRC_FLAG=-p --jobs 100 --qsub '-hard -l mem_free=20G -l act_mem_free=20G -l h_vm
 endif
 
 
-input/%/done : data/input/%.data.gz
+input/%/done : data/input/%.data.filtered.gz
 	mkdir -p $(dir $@); \
-	if [ -f data/input/$*.en-fr.doc-ids.gz ]; then \
-		ids_file=data/input/$*.en-fr.doc-ids.gz; \
+	if [ -f data/input/$*.$(TRANSL_PAIR).doc-ids.gz ]; then \
+		ids_file=data/input/$*.$(TRANSL_PAIR).doc-ids.gz; \
 	fi; \
 	zcat $< | scripts/split_data_to_docs.pl $(dir $@) $$ids_file
 	touch $@ 
@@ -76,8 +83,6 @@ train_test :
 		TMP_DIR=ml_runs \
 		D="$(D)"
 
-ORIG_TEST_DATA=data/input/TEDdev.data.gz
-
 #$(RESULT).adjusted : $(RESULT)
 #	cat $< | scripts/postprocess_vw_results.pl > $@
 #eval : $(RESULT).adjusted
@@ -85,4 +90,19 @@ ORIG_TEST_DATA=data/input/TEDdev.data.gz
 eval : $(RESULT)
 	name=`echo "$<" | perl -ne '$$_ =~ s|^ml_runs/||; $$_ =~ s|/result/.*$$||; $$_ =~ s|/|_|g; print $$_;'`; \
 	cat $< | scripts/vw_res_to_official_res.pl $(ORIG_TEST_DATA) > res/$$name.res; \
-	./discoMT_scorer.pl $(ORIG_TEST_DATA) res/$$name.res
+	./WMT16_CLPP_scorer.pl $(ORIG_TEST_DATA) res/$$name.res
+
+###########################################################################
+##################### BASELINE ############################################
+###########################################################################
+
+baseline : baseline/result/TEDdev.$(TRANSL_PAIR).res
+baseline/result/TEDdev.$(TRANSL_PAIR).res : $(ORIG_TEST_DATA)
+	 baseline/discomt_baseline.py \
+	 	--fmt=replace --removepos \
+	 	--conf baseline/$(TRANSL_PAIR).yml \
+		--lm baseline/mono+para.5.$(TRG_LANG).lemma.trie.kenlm \
+		$< > $@
+
+eval_baseline : $(ORIG_TEST_DATA) baseline/result/TEDdev.$(TRANSL_PAIR).res
+	perl eval/WMT16_CLPP_scorer.pl <( zcat $(word 1,$^) ) $(word 2,$^) $(TRANSL_PAIR)
