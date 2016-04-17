@@ -12,7 +12,7 @@ sub next_document {
     my $text = $self->next_document_text();
     return if !defined $text;
     
-    my @langs = split /[, ]/, $self->langs;
+    my @langs = split /[-, ]/, $self->langs;
     my @lang_sels = map {$_ =~ /-/ ? [ split(/-/, $_) ] : [ $_, $self->selector ]} @langs;
     
     my $document = $self->new_document();
@@ -41,6 +41,7 @@ sub _create_atrees {
     my ($self, $bundle, $lang_sels, @sents) = @_;
     
     my @atrees = ();
+    my $tagged = 0;
     foreach my $lang_sel (@$lang_sels){
         my ($l, $s) = @$lang_sel;
         my $zone = $bundle->create_zone( $l, $s );
@@ -49,13 +50,25 @@ sub _create_atrees {
         my $a_root = $zone->create_atree();
         my $i = 0;
         foreach my $token (split / /, $sent) {
-            $a_root->create_child(
-                form           => $token,
-                ord            => $i + 1,
-            );
+            if ($tagged) {
+                my ($lemma, $tag) = split /\|/, $token;
+                $a_root->create_child(
+                    form           => "__UNK__",
+                    ord            => $i + 1,
+                    lemma          => $lemma,
+                    tag            => $tag,
+                );
+            }
+            else {
+                $a_root->create_child(
+                    form           => $token,
+                    ord            => $i + 1,
+                );
+            }
             $i++;
         }
         push @atrees, $a_root;
+        $tagged++;
     }
     return @atrees;
 }
