@@ -1,4 +1,6 @@
 /data
+/baseline
+/eval
 /input
 /trees
 /trees_coref
@@ -6,8 +8,6 @@
 /tables
 /res
 /ml_runs
-/discomt_baseline.py
-/discoMT_scorer.pl
 /*.log
 /_Inline
 *.pyc
