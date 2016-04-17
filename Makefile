@@ -1,5 +1,6 @@
 SHELL=/bin/bash
 TRANSL_PAIR=fr-en
+SRC_LANG:=$(shell echo $(TRANSL_PAIR) | cut -f1 -d'-')
 TRG_LANG:=$(shell echo $(TRANSL_PAIR) | cut -f2 -d'-')
 
 ORIG_TEST_DATA=data/input/TEDdev.$(TRANSL_PAIR).data.filtered.gz
@@ -18,17 +19,20 @@ endif
 
 input/%/done : data/input/%.data.filtered.gz
 	mkdir -p $(dir $@); \
-	if [ -f data/input/$*.$(TRANSL_PAIR).doc-ids.gz ]; then \
-		ids_file=data/input/$*.$(TRANSL_PAIR).doc-ids.gz; \
+	if [ -f data/input/$*.doc-ids.gz ]; then \
+		ids_file=data/input/$*.doc-ids.gz; \
 	fi; \
 	zcat $< | scripts/split_data_to_docs.pl $(dir $@) $$ids_file
 	touch $@ 
 
 trees/%/done : input/%/done
+	translpair=`echo $* | cut -f2 -d'.'`; \
+	srclang=`echo $$translpair | cut -f1 -d'-'`; \
+	trglang=`echo $$translpair | cut -f2 -d'-'`; \
 	mkdir -p $(dir $@); \
 	$(TREEX) $(LRC_FLAG) -Ssrc \
-		Read::Discomt2015 from='!$(dir $<)/*.txt' langs='en,fr' skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.streex}' \
-		scen/en.analysis.scen \
+		Read::Discomt2015 from='!$(dir $<)/*.txt' langs="$$translpair" skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.streex}' \
+		scen/$$srclang.src.analysis.scen \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
