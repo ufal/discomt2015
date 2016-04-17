@@ -18,9 +18,10 @@ endif
 
 
 input/%/done : data/input/%.data.filtered.gz
+	doc_ids=`perl -e 'my ($$id, $$langs) = split /\./, "$*"; my ($$src, $$trg) = split /-/, $$langs; print ($$trg eq "en" ? $$id.".".$$langs : $$id.".".$$trg."-".$$src);'`; \
 	mkdir -p $(dir $@); \
-	if [ -f data/input/$*.doc-ids.gz ]; then \
-		ids_file=data/input/$*.doc-ids.gz; \
+	if [ -f data/input/$$doc_ids.doc-ids.gz ]; then \
+		ids_file=data/input/$$doc_ids.doc-ids.gz; \
 	fi; \
 	zcat $< | scripts/split_data_to_docs.pl $(dir $@) $$ids_file
 	touch $@ 
