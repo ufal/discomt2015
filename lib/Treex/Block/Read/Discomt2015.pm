@@ -53,7 +53,7 @@ sub _create_atrees {
             if ($tagged) {
                 my ($lemma, $tag) = split /\|/, $token;
                 $a_root->create_child(
-                    form           => "__UNK__",
+                    form           => $lemma,
                     ord            => $i + 1,
                     lemma          => $lemma,
                     tag            => $tag,
