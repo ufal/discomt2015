@@ -56,3 +56,4 @@ T2T::SetClauseNumber
 A2T::EN::FixRelClauseNoRelPron
 A2T::EN::MarkReferentialIt resolver_type=nada threshold=0.5 suffix=nada_0.5
 A2T::EN::FindTextCoref
+Coref::EN::ResolveBART2 is_czeng=0
