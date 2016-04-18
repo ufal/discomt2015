@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-my $sents_per_doc = 200;
+my $sents_per_doc = 50;
 my $out_dir = $ARGV[0];
 my $doc_idx_file = $ARGV[1];
 
