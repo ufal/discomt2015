@@ -29,6 +29,7 @@ while (my $line = <STDIN>) {
         my ($doc_id) = split /\t/, $doc_idx_line;
         $doc_id =~ s/^.*\///;
         $doc_id =~ s/([^.]*)\..*$/$1/;
+        chomp $doc_id;
         if (!defined $prev_doc_id || ($doc_id ne $prev_doc_id)) {
             $new_doc = 1;
             $doc_part = 1;
