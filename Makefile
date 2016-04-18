@@ -34,26 +34,11 @@ trees/%/done : input/%/done
 	$(TREEX) $(LRC_FLAG) -Ssrc \
 		Read::Discomt2015 from='!$(dir $<)/*.txt' langs="$$translpair" skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.streex}' \
 		scen/$$srclang.src.analysis.scen \
+		scen/$$trglang.trg.analysis.scen \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
-trees_coref/%/done : trees/%/done
-	mkdir -p $(dir $@); \
-	$(TREEX) $(LRC_FLAG) -Ssrc \
-		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.streex}' \
-		scen/coref.scen \
-		Write::Treex path=$(dir $@) storable=1
-	touch $@
-
-trees_fr/%/done : trees_coref/%/done
-	mkdir -p $(dir $@); \
-	$(TREEX) $(LRC_FLAG) -Ssrc \
-		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.streex}' \
-		scen/fr.analysis.scen \
-		Write::Treex path=$(dir $@) storable=1
-	touch $@
-
-tables/%/done : trees_fr/%/done
+tables/%/done : trees/%/done
 	mkdir -p $(dir $@); \
 	$(TREEX) $(LRC_FLAG) -Ssrc -Lfr \
 		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.txt}' \
