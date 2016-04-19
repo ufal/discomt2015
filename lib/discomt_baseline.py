@@ -6,6 +6,7 @@ import re
 import math
 import optparse
 import kenlm
+import yaml
 from collections import defaultdict
 from gzip import GzipFile
 
@@ -57,6 +58,13 @@ class KenLM:
         else:
             return x
 
+    def map_from_unicode(self, fillers):
+        #print >>sys.stderr, fillers
+        result = []
+        for filler in fillers:
+            result.append([w.encode('UTF-8') for w in filler])
+        return result
+
 
     def gen_items(self, contexts, prev_contexts):
         '''
@@ -92,7 +100,16 @@ class KenLM:
         model_score = self.model.score(' '.join(x[0]))
         return model_score + x[1]
 
-    def __init__(self, model_path='../data/corpus.5.fr.trie.kenlm', NONE_PENALTY=0):
+    def __init__(self, model_path, conf_path, NONE_PENALTY=0):
+        if conf_path is not None:
+            print >>sys.stderr, "Reading config from %s"%(conf_path,)
+            conf = yaml.load(file(conf_path))
+            self.all_fillers = self.map_from_unicode(conf['all_fillers'])
+            self.non_fillers = self.map_from_unicode(conf['other_fillers'])
+            if 'lm' in conf and model_path is None:
+                model_path = conf['lm']
+        if model_path is None:
+            model_path = '../baseline/mono+para.5.fr.lemma.trie.kenlm'
         self.model = kenlm.LanguageModel(model_path)
         self.NONE_PENALTY = NONE_PENALTY
         
