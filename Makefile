@@ -27,6 +27,15 @@ input/%/done : data/input/%.data.filtered.gz
 	zcat $< | scripts/split_data_to_docs.pl $(dir $@) $$ids_file
 	touch $@ 
 
+trees/%.de-en/done : input/%.de-en/done
+	mkdir -p $(dir $@); \
+	scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 0; \
+	$(TREEX) $(LRC_FLAG) -Ssrc \
+		Read::CoNLL2009 from='$(dir $@)/*.conll' use_p_attribs=1 \
+		Write::Treex path='$(dir $@)' storable=1
+	touch $@
+	
+
 trees/%/done : input/%/done
 	translpair=`echo $* | cut -f2 -d'.'`; \
 	srclang=`echo $$translpair | cut -f1 -d'-'`; \
@@ -39,20 +48,31 @@ trees/%/done : input/%/done
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
-trg_analysis/%/done : input/%/done trees/%/done
-	translpair=`echo $* | cut -f2 -d'.'`; \
-	trglang=`echo $$translpair | cut -f2 -d'-'`; \
+#	mkdir -p log; \
+#	job_count=`find $(dir $(word 1,$^)) -name '*.txt' 2> /dev/null | wc -l`; \
+#	i=0; \
+#	for infile in $(dir $(word 1,$^))/*.txt; do \
+#		if [ $$i -eq 0 ]; then \
+#			if [ `qstat | wc -l` -gt 5000 ]; then \
+#				sleep 300; \
+#			fi; \
+#		fi; \
+#		if [ ! -e $(dir $@)/`basename $$infile` ]; then \
+#			qsubmit --jobname='de_trg_analysis.$*' --mem="6g" --logdir="log/" \
+#				"scripts/german_analysis.sh $$infile $(dir $@) 1"; \
+#			i=$$((i++)); \
+#		fi; \
+#		if [ $$i -gt 500 ]; then \
+#			i=0; \
+#		fi; \
+#	done; \
+#	while [ `find $(dir $@) -name '*.txt' 2> /dev/null | wc -l` -lt $$job_count ]; do \
+#		sleep 10; \
+#	done;
+trg_analysis/%.en-de/done : input/%.en-de/done trees/%.en-de/done
 	mkdir -p $(dir $@); \
-	mkdir -p log; \
-	job_count=`find $(dir $(word 1,$^)) -name '*.txt' 2> /dev/null | wc -l`; \
-	for infile in $(dir $(word 1,$^))/*.txt; do \
-		qsubmit --jobname='trg_analysis.$*' --mem="10g" --logdir="log/" \
-			"scripts/do_trg_analysis.sh $$infile $(dir $@)"; \
-	done; \
-	while [ `find $(dir $@) -name '*.txt' 2> /dev/null | wc -l` -lt $$job_count ]; do \
-		sleep 10; \
-	done; \
-	$(TREEX) $(LRC_FLAG) -Ssrc -L$$trglang \
+	scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 1; \
+	$(TREEX) $(LRC_FLAG) -Ssrc -Lde \
 		Read::Treex from='!$(dir $(word 2,$^))/*.streex' \
 		Import::TargetMorpho from_dir='$(dir $@)' \
 		Write::Treex path=$(dir $@) storable=1
