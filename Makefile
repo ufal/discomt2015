@@ -39,19 +39,19 @@ trees/%/done : input/%/done
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
-#	job_count=`find $(dir $(word 1,$^)) -name '*.txt' 2> /dev/null | wc -l`; \
-#	for infile in $(dir $(word 1,$^))/*.txt; do \
-#		qsubmit --jobname='trg_analysis.$*' --mem="10g" --logdir="log/" \
-#			"scripts/do_trg_analysis.sh $$infile $(dir $@)"; \
-#	done; \
-#	while [ `find $(dir $@) -name '*.txt' 2> /dev/null | wc -l` -lt $$job_count ]; do \
-#		sleep 10; \
-#	done; 
 trg_analysis/%/done : input/%/done trees/%/done
 	translpair=`echo $* | cut -f2 -d'.'`; \
 	trglang=`echo $$translpair | cut -f2 -d'-'`; \
 	mkdir -p $(dir $@); \
 	mkdir -p log; \
+	job_count=`find $(dir $(word 1,$^)) -name '*.txt' 2> /dev/null | wc -l`; \
+	for infile in $(dir $(word 1,$^))/*.txt; do \
+		qsubmit --jobname='trg_analysis.$*' --mem="10g" --logdir="log/" \
+			"scripts/do_trg_analysis.sh $$infile $(dir $@)"; \
+	done; \
+	while [ `find $(dir $@) -name '*.txt' 2> /dev/null | wc -l` -lt $$job_count ]; do \
+		sleep 10; \
+	done; \
 	$(TREEX) $(LRC_FLAG) -Ssrc -L$$trglang \
 		Read::Treex from='!$(dir $(word 2,$^))/*.streex' \
 		Import::TargetMorpho from_dir='$(dir $@)' \
