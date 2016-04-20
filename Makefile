@@ -12,8 +12,9 @@ ORIG_TRAIN_DATA_NAMES = Europarl IWSLT14 NCv9
 TREEX = PERL5LIB=$$PERL5LIB:$$PWD/lib treex
 
 LRC=1
+MEM=20G
 ifeq ($(LRC),1)
-LRC_FLAG=-p --jobs 100 --qsub '-hard -l mem_free=20G -l act_mem_free=20G -l h_vmem=20G'
+LRC_FLAG=-p --jobs 100 --qsub '-hard -l mem_free=$(MEM) -l act_mem_free=$(MEM) -l h_vmem=$(MEM)'
 endif
 
 
@@ -35,6 +36,25 @@ trees/%/done : input/%/done
 		Read::Discomt2015 from='!$(dir $<)/*.txt' langs="$$translpair" skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.streex}' \
 		scen/$$srclang.src.analysis.scen \
 		scen/$$trglang.trg.analysis.scen \
+		Write::Treex path=$(dir $@) storable=1
+	touch $@
+
+#	job_count=`find $(dir $(word 1,$^)) -name '*.txt' 2> /dev/null | wc -l`; \
+#	for infile in $(dir $(word 1,$^))/*.txt; do \
+#		qsubmit --jobname='trg_analysis.$*' --mem="10g" --logdir="log/" \
+#			"scripts/do_trg_analysis.sh $$infile $(dir $@)"; \
+#	done; \
+#	while [ `find $(dir $@) -name '*.txt' 2> /dev/null | wc -l` -lt $$job_count ]; do \
+#		sleep 10; \
+#	done; 
+trg_analysis/%/done : input/%/done trees/%/done
+	translpair=`echo $* | cut -f2 -d'.'`; \
+	trglang=`echo $$translpair | cut -f2 -d'-'`; \
+	mkdir -p $(dir $@); \
+	mkdir -p log; \
+	$(TREEX) $(LRC_FLAG) -Ssrc -L$$trglang \
+		Read::Treex from='!$(dir $(word 2,$^))/*.streex' \
+		Import::TargetMorpho from_dir='$(dir $@)' \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 

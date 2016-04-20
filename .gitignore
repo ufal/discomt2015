@@ -2,10 +2,13 @@
 /baseline
 /eval
 /input
+/log
 /trees
 /trees_coref
 /trees_fr
 /tables
+/tools
+/trg_analysis
 /res
 /ml_runs
 /*.log
