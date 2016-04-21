@@ -90,7 +90,15 @@ tables/%/done : trees/%/done
 	touch $@
 
 tables/%.data.gz : tables/%/done
-	find $(dir $<) -name '*.txt' | sort | xargs cat | gzip -c > $@
+	doc_ids=`perl -e 'my ($$id, $$langs) = split /\./, "$*"; my ($$src, $$trg) = split /-/, $$langs; print ($$trg eq "en" ? $$id.".".$$langs : $$id.".".$$trg."-".$$src);'`; \
+	if [ -f data/input/$$doc_ids.doc-ids.gz ]; then \
+		for id in `zcat data/input/$$doc_ids.doc-ids.gz | uniq`; do \
+			find $(dir $<) -name 'doc_'$$id'_*.txt' | sort | xargs cat >> $(basename $@); \
+		done; \
+		gzip $(basename $@); \
+	else \
+		find $(dir $<) -name '*.txt' | sort | xargs cat | gzip -c > $@; \
+	fi
 
 .PRECIOUS : input/%/done trees/%/done trees_coref/%/done trees_fr/%/done tables/%/done
 
