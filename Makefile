@@ -14,7 +14,8 @@ TREEX = PERL5LIB=$$PERL5LIB:$$PWD/lib treex
 LRC=1
 MEM=20G
 ifeq ($(LRC),1)
-LRC_FLAG=-p --jobs 100 --qsub '-hard -l mem_free=$(MEM) -l act_mem_free=$(MEM) -l h_vmem=$(MEM)'
+LRC_FLAG_F=-p --jobs 100 --priority=-50 --qsub '-hard -l mem_free=$(1) -l act_mem_free=$(1) -l h_vmem=$(1)'
+LRC_FLAG=$(call LRC_FLAG_F,$(MEM))
 endif
 
 
@@ -72,17 +73,20 @@ trees/%/done : input/%/done
 trg_analysis/%.en-de/done : input/%.en-de/done trees/%.en-de/done
 	mkdir -p $(dir $@); \
 	scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 1; \
-	$(TREEX) $(LRC_FLAG) -Ssrc -Lde \
-		Read::Treex from='!$(dir $(word 2,$^))/*.streex' \
+	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc -Lde \
+		Read::Treex from='!$(dir $(word 2,$^))/*.streex' skip_finished='{$(dir $(word 2,$^))(.+).streex$$}{$(dir $@)$$1.streex}' \
 		Import::TargetMorpho from_dir='$(dir $@)' \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
 tables/%/done : trees/%/done
+	translpair=`echo $* | cut -f2 -d'.'`; \
+	srclang=`echo $$translpair | cut -f1 -d'-'`; \
+	trglang=`echo $$translpair | cut -f2 -d'-'`; \
 	mkdir -p $(dir $@); \
-	$(TREEX) $(LRC_FLAG) -Ssrc -Lfr \
+	$(TREEX) $(LRC_FLAG) -Ssrc -L$$trglang \
 		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.txt}' \
-		Print::ExtractDiscomt2015Table extension=".txt" path=$(dir $@)
+		Print::ExtractDiscomt2015Table src_language=$$srclang extension=".txt" path=$(dir $@)
 	touch $@
 
 tables/%.data.gz : tables/%/done
@@ -90,10 +94,11 @@ tables/%.data.gz : tables/%/done
 
 .PRECIOUS : input/%/done trees/%/done trees_coref/%/done trees_fr/%/done tables/%/done
 
-TRAIN_DATA=tables/train.data.gz
-TEST_DATA=tables/TEDdev.data.gz
+TRAIN_DATA=tables/train.$(TRANSL_PAIR).data.gz
+TEST_DATA=tables/TEDdev.$(TRANSL_PAIR).data.gz
 
-$(TRAIN_DATA) : tables/Europarl.data.gz tables/NCv9.data.gz
+#$(TRAIN_DATA) : tables/Europarl.data.gz tables/NCv9.data.gz
+$(TRAIN_DATA) : tables/NCv9.$(TRANSL_PAIR).data.gz
 	zcat $^ | gzip -c > $@
 
 prepare_train_data : $(TRAIN_DATA)
@@ -102,7 +107,7 @@ prepare_dev_data : $(TEST_DATA)
 #FEATSET_LIST=conf/$(LANGUAGE).featset_list
 
 train_test :
-	$(ML_FRAMEWORK_DIR)/run.sh -f conf/params.ini \
+	$(MLYN_DIR)/run.sh -f conf/params.ini \
 		EXPERIMENT_TYPE=train_test \
 		DATA_LIST="TRAIN_DATA TEST_DATA" \
 		TEST_DATA_LIST="TRAIN_DATA TEST_DATA" \
@@ -117,10 +122,10 @@ train_test :
 #	cat $< | scripts/postprocess_vw_results.pl > $@
 #eval : $(RESULT).adjusted
 
-eval : $(RESULT)
-	name=`echo "$<" | perl -ne '$$_ =~ s|^ml_runs/||; $$_ =~ s|/result/.*$$||; $$_ =~ s|/|_|g; print $$_;'`; \
-	cat $< | scripts/vw_res_to_official_res.pl $(ORIG_TEST_DATA) > res/$$name.res; \
-	./WMT16_CLPP_scorer.pl $(ORIG_TEST_DATA) res/$$name.res
+eval : $(ORIG_TEST_DATA) $(RESULT)
+	name=`echo "$(word 2,$^)" | perl -ne '$$_ =~ s|^ml_runs/||; $$_ =~ s|/result/.*$$||; $$_ =~ s|/|_|g; print $$_;'`; \
+	cat $(word 2,$^) | scripts/vw_res_to_official_res.pl $(word 1,$^) $(TRANSL_PAIR) > res/$$name.res; \
+	perl eval/WMT16_CLPP_scorer.pl <( zcat $(word 1,$^) ) res/$$name.res $(TRANSL_PAIR)
 
 ###########################################################################
 ##################### BASELINE ############################################

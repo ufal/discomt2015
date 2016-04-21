@@ -5,19 +5,57 @@ use warnings;
 use Data::Dumper;
 use List::Util qw/min/;
 
-my @CLASSES = qw/
-OTHER
-il
-ce
-elle
-ils
-elles
-cela
-on
-ça
-/;
+my $CLASSES_FOR_TRANSL_PAIR = {
+    en => {
+        de => [
+            'er',
+            'sie',
+            'es',
+            'man',
+            'OTHER',
+        ],
+        fr => [
+            'ce',
+            'elle',
+            'elles',
+            'il',
+            'ils',
+            'cela',
+            'on',
+            'OTHER',
+        ],
+    },
+    de => {
+        en => [
+            'he',
+            'she',
+            'it',
+            'they',
+            'you',
+            'this',
+            'these',
+            'there',
+            'OTHER',
+        ],
+    },
+    fr => {
+        en => [
+            'he',
+            'she',
+            'it',
+            'they',
+            'this',
+            'these',
+            'there',
+            'OTHER',
+        ],
+    },
+};
 
 my $orig_data = $ARGV[0];
+my ($src_lang, $trg_lang) = split /-/, $ARGV[1];
+
+my @CLASSES = sort @{$CLASSES_FOR_TRANSL_PAIR->{$src_lang}{$trg_lang}};
 
 open my $fh_orig, "<:gzip:utf8", $orig_data;
 while (my $orig_line = <$fh_orig>) {
