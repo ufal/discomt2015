@@ -130,10 +130,16 @@ train_test :
 #	cat $< | scripts/postprocess_vw_results.pl > $@
 #eval : $(RESULT).adjusted
 
+DATE := $(shell date +%Y-%m-%d_%H-%M-%S)
+
+.PHONY : eval
 eval : $(ORIG_TEST_DATA) $(RESULT)
 	name=`echo "$(word 2,$^)" | perl -ne '$$_ =~ s|^ml_runs/||; $$_ =~ s|/result/.*$$||; $$_ =~ s|/|_|g; print $$_;'`; \
 	cat $(word 2,$^) | scripts/vw_res_to_official_res.pl $(word 1,$^) $(TRANSL_PAIR) > res/$$name.res; \
-	perl eval/WMT16_CLPP_scorer.pl <( zcat $(word 1,$^) ) res/$$name.res $(TRANSL_PAIR)
+	perl eval/WMT16_CLPP_scorer.pl <( zcat $(word 1,$^) ) res/$$name.res $(TRANSL_PAIR) > eval/res/$$name.eval; \
+	score=`cat eval/res/$$name.eval | grep "MACRO-averaged R" | sed 's/^.*: *//'`; \
+	echo -e "$(DATE)\t$$score\t$$name" >> results.$(TRANSL_PAIR).txt; \
+	cat eval/res/$$name.eval
 
 ####################### DIAGNOSTICS #######################################
 
