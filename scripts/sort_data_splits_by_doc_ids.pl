@@ -15,12 +15,13 @@ my @uniq_ids = ();
 my $prev = undef;
 foreach (@lines) {
     chomp $_;
-    $_ =~ s/\s+.*$//;
-    $_ =~ s/\.txt$//;
-    if (!defined $prev || $_ ne $prev) {
-        push @uniq_ids, $_;
+    my ($doc_id) = split /\t/, $_;
+    $doc_id =~ s/^.*\///;
+    $doc_id =~ s/([^.]*)\..*$/$1/;
+    if (!defined $prev || $doc_id ne $prev) {
+        push @uniq_ids, $doc_id;
     }
-    $prev = $_;
+    $prev = $doc_id;
 }
 
 my %ids_to_idx = map {$uniq_ids[$_] => $_} 0..$#uniq_ids;
