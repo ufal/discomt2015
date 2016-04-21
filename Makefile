@@ -28,11 +28,11 @@ input/%/done : data/input/%.data.filtered.gz
 	zcat $< | scripts/split_data_to_docs.pl $(dir $@) $$ids_file
 	touch $@ 
 
+	#scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 0; 
 trees/%.de-en/done : input/%.de-en/done
 	mkdir -p $(dir $@); \
-	scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 0; \
 	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc \
-		Read::CoNLL2009 from='!$(dir $@)/*.conll' use_p_attribs=1 \
+		Read::CoNLL2009 from='!$(dir $@)/*.conll' use_p_attribs=1 skip_finished='{$(dir $@)(.+).conll$$}{$(dir $@)$$1.streex}' \
 		Write::Treex path='$(dir $@)' storable=1
 	touch $@
 	
@@ -92,8 +92,8 @@ tables/%/done : trees/%/done
 tables/%.data.gz : tables/%/done
 	doc_ids=`perl -e 'my ($$id, $$langs) = split /\./, "$*"; my ($$src, $$trg) = split /-/, $$langs; print ($$trg eq "en" ? $$id.".".$$langs : $$id.".".$$trg."-".$$src);'`; \
 	if [ -f data/input/$$doc_ids.doc-ids.gz ]; then \
-		for id in `zcat data/input/$$doc_ids.doc-ids.gz | uniq`; do \
-			find $(dir $<) -name 'doc_'$$id'_*.txt' | sort | xargs cat >> $(basename $@); \
+		for part_file in `scripts/sort_data_splits_by_doc_ids.pl $(dir $<) data/input/$$doc_ids.doc-ids.gz`; do \
+			cat $$part_file >> $(basename $@); \
 		done; \
 		gzip $(basename $@); \
 	else \
@@ -106,7 +106,7 @@ TRAIN_DATA=tables/train.$(TRANSL_PAIR).data.gz
 TEST_DATA=tables/TEDdev.$(TRANSL_PAIR).data.gz
 
 #$(TRAIN_DATA) : tables/Europarl.data.gz tables/NCv9.data.gz
-$(TRAIN_DATA) : tables/NCv9.$(TRANSL_PAIR).data.gz
+$(TRAIN_DATA) : tables/Europarl.$(TRANSL_PAIR).data.gz tables/IWSLT15.$(TRANSL_PAIR).data.gz tables/NCv9.$(TRANSL_PAIR).data.gz
 	zcat $^ | gzip -c > $@
 
 prepare_train_data : $(TRAIN_DATA)
