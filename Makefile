@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-TRANSL_PAIR=fr-en
+TRANSL_PAIR=en-de
 SRC_LANG:=$(shell echo $(TRANSL_PAIR) | cut -f1 -d'-')
 TRG_LANG:=$(shell echo $(TRANSL_PAIR) | cut -f2 -d'-')
 
@@ -31,8 +31,8 @@ input/%/done : data/input/%.data.filtered.gz
 trees/%.de-en/done : input/%.de-en/done
 	mkdir -p $(dir $@); \
 	scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 0; \
-	$(TREEX) $(LRC_FLAG) -Ssrc \
-		Read::CoNLL2009 from='$(dir $@)/*.conll' use_p_attribs=1 \
+	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc \
+		Read::CoNLL2009 from='!$(dir $@)/*.conll' use_p_attribs=1 \
 		Write::Treex path='$(dir $@)' storable=1
 	touch $@
 	
@@ -126,6 +126,18 @@ eval : $(ORIG_TEST_DATA) $(RESULT)
 	name=`echo "$(word 2,$^)" | perl -ne '$$_ =~ s|^ml_runs/||; $$_ =~ s|/result/.*$$||; $$_ =~ s|/|_|g; print $$_;'`; \
 	cat $(word 2,$^) | scripts/vw_res_to_official_res.pl $(word 1,$^) $(TRANSL_PAIR) > res/$$name.res; \
 	perl eval/WMT16_CLPP_scorer.pl <( zcat $(word 1,$^) ) res/$$name.res $(TRANSL_PAIR)
+
+####################### DIAGNOSTICS #######################################
+
+# shows only incorrextly resolved instances from the TEST_DATA
+# features can be filtered by appending:
+# $(MLYN_DIR)/scripts/filter_feat.pl --in kenlm_w_prob,kenlm_w_rank,trg_class |
+show_error_instances : $(TEST_DATA) $(RESULT)
+	zcat $(word 1,$^) | \
+		$(MLYN_DIR)/scripts/paste_data_results.pl --log $(word 2,$^) | \
+		scripts/filter_errors.pl | \
+		$(MLYN_DIR)/scripts/filter_feat.pl --in kenlm_w_prob,kenlm_w_rank,trg_class | \
+		less -S
 
 ###########################################################################
 ##################### BASELINE ############################################
