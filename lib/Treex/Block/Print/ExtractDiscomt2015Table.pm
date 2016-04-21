@@ -118,10 +118,10 @@ sub get_losses {
     my @losses;
     if ($self->weighted_examples) {
         my $losses_sum = sum values %$classes_losses;
-        @losses = map {($_ eq $class) ? 1 - ($classes_losses->{$_} / $losses_sum) : 1} keys %$classes_losses;
+        @losses = map {($_ eq $class) ? 1 - ($classes_losses->{$_} / $losses_sum) : 1} sort keys %$classes_losses;
     }
     else {
-        @losses = map {($_ eq $class) ? 0 : 1} keys %$classes_losses;
+        @losses = map {($_ eq $class) ? 0 : 1} sort keys %$classes_losses;
     }
     
     return \@losses;
@@ -150,7 +150,7 @@ sub get_class_feats {
     my ($self) = @_;
     my $classes_losses = $self->_classes_losses->{$self->src_language}{$self->language};
 
-    my @class_feats = map {[["|t", undef], ["trg_class", $_]]} keys %$classes_losses;
+    my @class_feats = map {[["|t", undef], ["trg_class", $_]]} sort keys %$classes_losses;
     return \@class_feats;
 }
 
