@@ -10,6 +10,8 @@ sub process_document {
     my $doc_name = $doc->file_stem;
 
     my $morpho_file = $self->from_dir . "/" . $doc_name . ".txt";
+    return if (! -f $morpho_file);
+
     open my $morpho_fh, "<:utf8", $morpho_file;
 
     my @all_nodes = map {
