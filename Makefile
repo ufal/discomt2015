@@ -28,9 +28,9 @@ input/%/done : data/input/%.data.filtered.gz
 	zcat $< | scripts/split_data_to_docs.pl $(dir $@) $$ids_file
 	touch $@ 
 
-	#scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 0; 
 trees/%.de-en/done : input/%.de-en/done
 	mkdir -p $(dir $@); \
+	scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 0; \
 	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc \
 		Read::CoNLL2009 from='!$(dir $@)/*.conll' use_p_attribs=1 skip_finished='{$(dir $@)(.+).conll$$}{$(dir $@)$$1.streex}' \
 		Write::Treex path='$(dir $@)' storable=1
