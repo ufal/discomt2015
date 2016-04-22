@@ -390,12 +390,13 @@ sub get_trg_feats_over_src_prev_sb {
     my @trg_genders = map {
         my $src_node = $_;
         my ($trg_nodes) = $src_node->get_undirected_aligned_nodes({language => $self->language});
-        my ($gender) = map {$_->wild->{gender}} grep {defined $_->wild->{gender}} @$trg_nodes;
+        # only nouns are accepted - pronouns keep no gender information since they are lemmatized
+        my ($gender) = map {$_->wild->{gender}} grep {defined $_->tag && $_->tag =~ /^NO/ && defined $_->wild->{gender}} @$trg_nodes;
         if (!defined $gender) {
             my ($src_pnom) = grep {lc(get_afun($_)) eq "pnom"} $src_node->get_siblings;
             if (defined $src_pnom) {
                 ($trg_nodes) = $src_pnom->get_undirected_aligned_nodes({language => $self->language});
-                ($gender) = map {$_->wild->{gender}} grep {defined $_->wild->{gender}} @$trg_nodes;
+                ($gender) = map {$_->wild->{gender}} grep {defined $_->tag && $_->tag =~ /^NO/ && defined $_->wild->{gender}} @$trg_nodes;
             }
         }
         $gender;
