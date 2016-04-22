@@ -20,7 +20,7 @@ endif
 
 
 input/%/done : data/input/%.data.filtered.gz
-	doc_ids=`perl -e 'my ($$id, $$langs) = split /\./, "$*"; my ($$src, $$trg) = split /-/, $$langs; print ($$trg eq "en" ? $$id.".".$$langs : $$id.".".$$trg."-".$$src);'`; \
+	doc_ids=`perl -e 'my ($$id, $$langstr) = split /\./, "$*"; my (@langs) = split /-/, $$langstr; print $$id.".".(join "-", sort @langs);'`; \
 	mkdir -p $(dir $@); \
 	if [ -f data/input/$$doc_ids.doc-ids.gz ]; then \
 		ids_file=data/input/$$doc_ids.doc-ids.gz; \
