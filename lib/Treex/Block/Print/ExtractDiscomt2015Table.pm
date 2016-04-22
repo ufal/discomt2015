@@ -256,6 +256,7 @@ sub get_trg_feats {
     my @trg_feats = ();
 
     push @trg_feats, $self->kenlm_probs($trg_anode);
+    push @trg_feats, $self->ngram_feats($trg_anode);
     return @trg_feats;
 }
 #-------------------- KENLM features ------------------------------------------------
@@ -271,6 +272,28 @@ sub kenlm_probs {
     push @feats, map {['kenlm_w_rank', $scores->[$_][0].'_'.binning($_+1, @KENLM_RANK_BINS)]} 0 .. $#$scores;
     push @feats, map {['kenlm_w_rank_3', $scores->[$_][0].'_'.binning($_+1, @KENLM_RANK_3_BINS)]} 0 .. $#$scores;
     push @feats, map {['kenlm_w_rank_5', $scores->[$_][0].'_'.binning($_+1, @KENLM_RANK_5_BINS)]} 0 .. $#$scores;
+    return @feats;
+}
+
+#--------------------------- ngram features ----------------------------------------
+
+sub ngram_feats {
+    my ($self, $trg_anode) = @_;
+
+    my @before_nodes = $trg_anode->get_siblings({preceding_only => 1, ordered => 1});
+    my @after_nodes = $trg_anode->get_siblings({following_only => 1, ordered => 1});
+    
+    my @feats = ();
+    push @feats, map {['trg_verb_prev_1', $_->lemma]} grep {$_->tag =~ /^VER/} $before_nodes[-1];
+    push @feats, map {['trg_verb_foll_1', $_->lemma]} grep {$_->tag =~ /^VER/} $after_nodes[0];
+    push @feats, map {['trg_verb_surr_1', $_->lemma]} grep {$_->tag =~ /^VER/} ($before_nodes[-1], $after_nodes[0]);
+    push @feats, map {['trg_verb_prev_3', $_->lemma]} grep {$_->tag =~ /^VER/} @before_nodes[-3 .. -1];
+    push @feats, map {['trg_verb_foll_3', $_->lemma]} grep {$_->tag =~ /^VER/} @after_nodes[0 .. 2];
+    push @feats, map {['trg_verb_surr_3', $_->lemma]} grep {$_->tag =~ /^VER/} (@before_nodes[-3 .. -1], @after_nodes[0 .. 2]);
+    push @feats, map {['trg_verb_prev_5', $_->lemma]} grep {$_->tag =~ /^VER/} @before_nodes[-5 .. -1];
+    push @feats, map {['trg_verb_foll_5', $_->lemma]} grep {$_->tag =~ /^VER/} @after_nodes[0 .. 4];
+    push @feats, map {['trg_verb_surr_5', $_->lemma]} grep {$_->tag =~ /^VER/} (@before_nodes[-5 .. -1], @after_nodes[0 .. 4]);
+
     return @feats;
 }
 
