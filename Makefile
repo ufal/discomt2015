@@ -83,7 +83,8 @@ trg_analysis/%.de-en/done : input/%.de-en/done trees/%.de-en/done
 	mkdir -p $(dir $@); \
 	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc -Len \
 		Read::Treex from='!$(dir $(word 2,$^))/*.streex' skip_finished='{$(dir $(word 2,$^))(.+).streex$$}{$(dir $@)$$1.streex}' \
-		Import::TargetEnglishSentence from_dir='$(dir $@)' src_language='de' \
+		Import::TargetEnglishSentence from_dir='$(dir $(word 1,$^))' src_language='de' \
+		W2A::EN::GuessGender \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 		
