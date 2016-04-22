@@ -31,7 +31,7 @@ input/%/done : data/input/%.data.filtered.gz
 trees/%.de-en/done : input/%.de-en/done
 	mkdir -p $(dir $@); \
 	scripts/german_analysis_on_cluster.sh $(dir $(word 1,$^)) $(dir $@) 0; \
-	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc \
+	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc -Lde \
 		Read::CoNLL2009 from='!$(dir $@)/*.conll' use_p_attribs=1 skip_finished='{$(dir $@)(.+).conll$$}{$(dir $@)$$1.streex}' \
 		Write::Treex path='$(dir $@)' storable=1
 	touch $@
@@ -79,7 +79,15 @@ trg_analysis/%.en-de/done : input/%.en-de/done trees/%.en-de/done
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
-tables/%/done : trees/%/done
+trg_analysis/%.de-en/done : input/%.de-en/done trees/%.de-en/done
+	mkdir -p $(dir $@); \
+	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc -Len \
+		Read::Treex from='!$(dir $(word 2,$^))/*.streex' skip_finished='{$(dir $(word 2,$^))(.+).streex$$}{$(dir $@)$$1.streex}' \
+		Import::TargetEnglishSentence from_dir='$(dir $@)' src_language='de' \
+		Write::Treex path=$(dir $@) storable=1
+	touch $@
+		
+tables/%/done : trg_analysis/%/done
 	translpair=`echo $* | cut -f2 -d'.'`; \
 	srclang=`echo $$translpair | cut -f1 -d'-'`; \
 	trglang=`echo $$translpair | cut -f2 -d'-'`; \
