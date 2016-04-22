@@ -6,6 +6,7 @@ use utf8;
 use List::Util qw/sum/;
 use Treex::Tool::ML::VowpalWabbit::Util;
 use Treex::Tool::Python::RunFunc;
+use Treex::Tool::Context::Sentences;
 
 extends 'Treex::Block::Write::BaseTextWriter';
 
@@ -320,6 +321,7 @@ sub get_trg_feats_over_src_nodes {
 
     my @feats = ();
     push @feats, $self->get_trg_feats_over_src_antes($src_anode);
+    push @feats, $self->get_trg_feats_over_src_prev_sb($src_anode);
     push @feats, $self->get_trg_feats_over_src_par($src_anode);
     return @feats;
 }
@@ -372,6 +374,47 @@ sub get_trg_feats_over_src_antes {
 #    push @feats, ["trg_closest_ante_over_src_gender", $gender];
 #    push @feats, ["trg_closest_ante_over_src_number", $number];
 #    push @feats, ["trg_closest_ante_over_src_gender_number", $gender.$number];
+
+    return @feats;
+}
+
+sub get_trg_feats_over_src_prev_sb {
+    my ($self, $src_anode) = @_;
+
+    my @feats = ();
+
+    my $context_selector = Treex::Tool::Context::Sentences->new();
+    my @src_cands = reverse $context_selector->nodes_in_surroundings($src_anode, -2, 0, {preceding_only => 1});
+    
+    @src_cands = grep {lc(get_afun($_)) eq "sb"} @src_cands;
+    my @trg_genders = map {
+        my $src_node = $_;
+        my ($trg_nodes) = $src_node->get_undirected_aligned_nodes({language => $self->language});
+        my ($gender) = map {$_->wild->{gender}} grep {defined $_->wild->{gender}} @$trg_nodes;
+        if (!defined $gender) {
+            my ($src_pnom) = grep {lc(get_afun($_)) eq "pnom"} $src_node->get_siblings;
+            if (defined $src_pnom) {
+                ($trg_nodes) = $src_pnom->get_undirected_aligned_nodes({language => $self->language});
+                ($gender) = map {$_->wild->{gender}} grep {defined $_->wild->{gender}} @$trg_nodes;
+            }
+        }
+    } @src_cands;
+    my ($first_def_gender) = grep {defined $_} @trg_genders;
+    push @feats, ['trg_gender_over_src_prev_sb', $first_def_gender // "undef"];
+
+    # remove a subject which is a grandpa of src_anode, e.g. in the sentence "The fact that it collapsed is clear."
+    my @granpa_idxs = grep {
+        my $par = $src_anode->get_parent;
+        if (defined $par) {
+            my $granpa = $par->get_parent;
+            $granpa != $src_cands[$_];
+        }
+        else {
+            1;
+        }
+    } 0 .. $#src_cands;
+    ($first_def_gender) = grep {defined $_} map {$trg_genders[$_]} @granpa_idxs;
+    push @feats, ['trg_gender_over_src_prev_sb_no_granpa', $first_def_gender // "undef"];
 
     return @feats;
 }
