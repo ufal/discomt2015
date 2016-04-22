@@ -364,16 +364,16 @@ sub get_trg_feats_over_src_antes {
 
     my @feats = ();
 
-#    my $mfeats = $trg_closest_ante->wild->{mfeats};
-#    push @feats, ["trg_closest_ante_over_src_mfeats", $mfeats];
-#    my @split_mfeats = split /\|/, $mfeats;
-#    my ($gender) = map {$_ =~ s/^g=//; $_} grep {$_ =~ /^g=/} @split_mfeats;
-#    my ($number) = map {$_ =~ s/^n=//; $_} grep {$_ =~ /^n=/} @split_mfeats;
-#    $gender = $gender // "undef";
-#    $number = $number // "undef";
-#    push @feats, ["trg_closest_ante_over_src_gender", $gender];
-#    push @feats, ["trg_closest_ante_over_src_number", $number];
-#    push @feats, ["trg_closest_ante_over_src_gender_number", $gender.$number];
+    push @feats, ["trg_closest_ante_over_src_gender", $trg_closest_ante->wild->{gender} // "undef"];
+    #my $mfeats = $trg_closest_ante->wild->{mfeats};
+    #push @feats, ["trg_closest_ante_over_src_mfeats", $mfeats];
+    #my @split_mfeats = split /\|/, $mfeats;
+    #my ($gender) = map {$_ =~ s/^g=//; $_} grep {$_ =~ /^g=/} @split_mfeats;
+    #my ($number) = map {$_ =~ s/^n=//; $_} grep {$_ =~ /^n=/} @split_mfeats;
+    #$gender = $gender // "undef";
+    #$number = $number // "undef";
+    #push @feats, ["trg_closest_ante_over_src_number", $number];
+    #push @feats, ["trg_closest_ante_over_src_gender_number", $gender.$number];
 
     return @feats;
 }
