@@ -398,6 +398,7 @@ sub get_trg_feats_over_src_prev_sb {
                 ($gender) = map {$_->wild->{gender}} grep {defined $_->wild->{gender}} @$trg_nodes;
             }
         }
+        $gender;
     } @src_cands;
     my ($first_def_gender) = grep {defined $_} @trg_genders;
     push @feats, ['trg_gender_over_src_prev_sb', $first_def_gender // "undef"];
