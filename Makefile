@@ -45,7 +45,6 @@ trees/%/done : input/%/done
 	$(TREEX) $(LRC_FLAG) -Ssrc \
 		Read::Discomt2015 from='!$(dir $<)/*.txt' langs="$$translpair" skip_finished='{$(dir $<)(.+).txt$$}{$(dir $@)$$1.streex}' \
 		scen/$$srclang.src.analysis.scen \
-		scen/$$trglang.trg.analysis.scen \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
@@ -76,6 +75,14 @@ trg_analysis/%.en-de/done : input/%.en-de/done trees/%.en-de/done
 	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc -Lde \
 		Read::Treex from='!$(dir $(word 2,$^))/*.streex' skip_finished='{$(dir $(word 2,$^))(.+).streex$$}{$(dir $@)$$1.streex}' \
 		Import::TargetMorpho from_dir='$(dir $@)' \
+		Write::Treex path=$(dir $@) storable=1
+	touch $@
+
+trg_analysis/%.en-fr/done : trees/%.en-fr/done
+	mkdir -p $(dir $@); \
+	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc -Lfr \
+		Read::Treex from='!$(dir $<)/*.streex' skip_finished='{$(dir $<)(.+).streex$$}{$(dir $@)$$1.streex}' \
+		W2A::FR::GuessGender \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
 
