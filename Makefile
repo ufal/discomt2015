@@ -94,6 +94,14 @@ trg_analysis/%.de-en/done : input/%.de-en/done trees/%.de-en/done
 		W2A::EN::GuessGender \
 		Write::Treex path=$(dir $@) storable=1
 	touch $@
+
+trg_analysis/%.fr-en/done : input/%.fr-en/done trees/%.fr-en/done
+	mkdir -p $(dir $@); \
+	$(TREEX) $(call LRC_FLAG_F,2G) -Ssrc -Len \
+		Read::Treex from='!$(dir $(word 2,$^))/*.streex' skip_finished='{$(dir $(word 2,$^))(.+).streex$$}{$(dir $@)$$1.streex}' \
+		W2A::EN::GuessGender \
+		Write::Treex path=$(dir $@) storable=1
+	touch $@
 		
 tables/%/done : trg_analysis/%/done
 	translpair=`echo $* | cut -f2 -d'.'`; \
