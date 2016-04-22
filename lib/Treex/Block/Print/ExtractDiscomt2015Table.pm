@@ -280,19 +280,30 @@ sub kenlm_probs {
 sub ngram_feats {
     my ($self, $trg_anode) = @_;
 
-    my @before_nodes = $trg_anode->get_siblings({preceding_only => 1, ordered => 1});
-    my @after_nodes = $trg_anode->get_siblings({following_only => 1, ordered => 1});
+    my @before_nodes = $trg_anode->get_siblings({preceding_only => 1});
+    my @after_nodes = $trg_anode->get_siblings({following_only => 1});
     
     my @feats = ();
-    push @feats, map {['trg_verb_prev_1', $_->lemma]} grep {$_->tag =~ /^VER/} $before_nodes[-1];
-    push @feats, map {['trg_verb_foll_1', $_->lemma]} grep {$_->tag =~ /^VER/} $after_nodes[0];
-    push @feats, map {['trg_verb_surr_1', $_->lemma]} grep {$_->tag =~ /^VER/} ($before_nodes[-1], $after_nodes[0]);
-    push @feats, map {['trg_verb_prev_3', $_->lemma]} grep {$_->tag =~ /^VER/} @before_nodes[-3 .. -1];
-    push @feats, map {['trg_verb_foll_3', $_->lemma]} grep {$_->tag =~ /^VER/} @after_nodes[0 .. 2];
-    push @feats, map {['trg_verb_surr_3', $_->lemma]} grep {$_->tag =~ /^VER/} (@before_nodes[-3 .. -1], @after_nodes[0 .. 2]);
-    push @feats, map {['trg_verb_prev_5', $_->lemma]} grep {$_->tag =~ /^VER/} @before_nodes[-5 .. -1];
-    push @feats, map {['trg_verb_foll_5', $_->lemma]} grep {$_->tag =~ /^VER/} @after_nodes[0 .. 4];
-    push @feats, map {['trg_verb_surr_5', $_->lemma]} grep {$_->tag =~ /^VER/} (@before_nodes[-5 .. -1], @after_nodes[0 .. 4]);
+    my (@bn, @an, @sn);
+
+    @bn = $before_nodes[-1];
+    @an = $after_nodes[0];
+    @sn = (@bn, @an);
+    push @feats, map {['trg_verb_prev_1', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @bn;
+    push @feats, map {['trg_verb_foll_1', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @an;
+    push @feats, map {['trg_verb_surr_1', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @sn;
+    @bn = @before_nodes[-3 .. -1];
+    @an = @after_nodes[0 .. 2];
+    @sn = (@bn, @an);
+    push @feats, map {['trg_verb_prev_3', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @bn;
+    push @feats, map {['trg_verb_foll_3', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @an;
+    push @feats, map {['trg_verb_surr_3', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @sn;
+    @bn = @before_nodes[-5 .. -1];
+    @an = @after_nodes[0 .. 4];
+    @sn = (@bn, @an);
+    push @feats, map {['trg_verb_prev_5', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @bn;
+    push @feats, map {['trg_verb_foll_5', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @an;
+    push @feats, map {['trg_verb_surr_5', $_->lemma]} grep {defined $_->tag && $_->tag =~ /^VER/} grep {defined $_} @sn;
 
     return @feats;
 }
