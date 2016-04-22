@@ -102,12 +102,13 @@ tables/%.data.gz : tables/%/done
 
 .PRECIOUS : input/%/done trees/%/done trees_coref/%/done trees_fr/%/done tables/%/done
 
-TRAIN_DATA=tables/train.$(TRANSL_PAIR).data.gz
+TRAIN_DATA=tables/NCv9.$(TRANSL_PAIR).data.gz
+#TRAIN_DATA=tables/train.$(TRANSL_PAIR).data.gz
 TEST_DATA=tables/TEDdev.$(TRANSL_PAIR).data.gz
 
 #$(TRAIN_DATA) : tables/Europarl.data.gz tables/NCv9.data.gz
-$(TRAIN_DATA) : tables/Europarl.$(TRANSL_PAIR).data.gz tables/IWSLT15.$(TRANSL_PAIR).data.gz tables/NCv9.$(TRANSL_PAIR).data.gz
-	zcat $^ | gzip -c > $@
+#$(TRAIN_DATA) : tables/Europarl.$(TRANSL_PAIR).data.gz tables/IWSLT15.$(TRANSL_PAIR).data.gz tables/NCv9.$(TRANSL_PAIR).data.gz
+#	zcat $^ | gzip -c > $@
 
 prepare_train_data : $(TRAIN_DATA)
 prepare_dev_data : $(TEST_DATA)
