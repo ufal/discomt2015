@@ -189,6 +189,11 @@ sub get_morpho_feats {
     return map {['src_'.($is_main ? 'main_' : '').'lemma', $_->lemma]} @$anodes;
 }
 
+sub get_afun {
+    my ($anode) = @_;
+    return $anode->afun // $anode->get_attr("conll/deprel") // "undef";
+}
+
 sub get_synt_feats {
     my ($self, $src_anode) = @_;
     my $par = $src_anode->get_parent;
@@ -196,9 +201,9 @@ sub get_synt_feats {
 
     my @feats = ();
     push @feats, [ 'src_par_lemma', $par->lemma ];
-    push @feats, [ 'src_afun', $src_anode->afun ];
-    push @feats, [ 'src_par_lemma_self_afun', $par->lemma .'_'. $src_anode->afun ];
-    push @feats, [ 'src_par_lemma_self_afun_lemma', $par->lemma .'_'. $src_anode->afun . '_' . $src_anode->lemma ];
+    push @feats, [ 'src_afun', get_afun($src_anode) ];
+    push @feats, [ 'src_par_lemma_self_afun', $par->lemma .'_'. get_afun($src_anode) ];
+    push @feats, [ 'src_par_lemma_self_afun_lemma', $par->lemma .'_'. get_afun($src_anode) . '_' . $src_anode->lemma ];
 
     my ($src_tnode) = $src_anode->get_referencing_nodes('a/lex.rf');
     return @feats if (!defined $src_tnode);
