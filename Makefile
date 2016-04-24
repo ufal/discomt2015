@@ -4,6 +4,7 @@ SRC_LANG:=$(shell echo $(TRANSL_PAIR) | cut -f1 -d'-')
 TRG_LANG:=$(shell echo $(TRANSL_PAIR) | cut -f2 -d'-')
 
 ORIG_TEST_DATA=data/input/TEDdev.$(TRANSL_PAIR).data.filtered.gz
+ORIG_EVAL_DATA=data/input/WMT2016eval.$(TRANSL_PAIR).data.filtered.gz
 
 
 ORIG_TRAIN_DATA_NAMES = Europarl IWSLT14 NCv9
@@ -22,7 +23,9 @@ endif
 input/%/done : data/input/%.data.filtered.gz
 	doc_ids=`perl -e 'my ($$id, $$langstr) = split /\./, "$*"; my (@langs) = split /-/, $$langstr; print $$id.".".(join "-", sort @langs);'`; \
 	mkdir -p $(dir $@); \
-	if [ -f data/input/$$doc_ids.doc-ids.gz ]; then \
+	if [ -f data/input/$*.doc-ids.gz ]; then \
+		ids_file=data/input/$*.doc-ids.gz; \
+	elif [ -f data/input/$$doc_ids.doc-ids.gz ]; then \
 		ids_file=data/input/$$doc_ids.doc-ids.gz; \
 	fi; \
 	zcat $< | scripts/split_data_to_docs.pl $(dir $@) $$ids_file
@@ -115,24 +118,29 @@ tables/%/done : trg_analysis/%/done
 
 tables/%.data.gz : tables/%/done
 	doc_ids=`perl -e 'my ($$id, $$langs) = split /\./, "$*"; my ($$src, $$trg) = split /-/, $$langs; print ($$trg eq "en" ? $$id.".".$$langs : $$id.".".$$trg."-".$$src);'`; \
-	if [ -f data/input/$$doc_ids.doc-ids.gz ]; then \
-		for part_file in `scripts/sort_data_splits_by_doc_ids.pl $(dir $<) data/input/$$doc_ids.doc-ids.gz`; do \
-			cat $$part_file >> $(basename $@); \
-		done; \
-		gzip $(basename $@); \
+	if [ -f data/input/$*.doc-ids.gz ]; then \
+		ids_file=data/input/$*.doc-ids.gz; \
+	elif [ -f data/input/$$doc_ids.doc-ids.gz ]; then \
+		ids_file=data/input/$$doc_ids.doc-ids.gz; \
 	else \
 		find $(dir $<) -name '*.txt' | sort | xargs cat | gzip -c > $@; \
-	fi
+		exit; \
+	fi; \
+	for part_file in `scripts/sort_data_splits_by_doc_ids.pl $(dir $<) $$ids_file`; do \
+		cat $$part_file >> $(basename $@); \
+	done; \
+	gzip $(basename $@); \
 
 .PRECIOUS : input/%/done trees/%/done trees_coref/%/done trees_fr/%/done tables/%/done
 
-TRAIN_DATA=tables/NCv9.$(TRANSL_PAIR).data.gz
-#TRAIN_DATA=tables/train.$(TRANSL_PAIR).data.gz
+#TRAIN_DATA=tables/NCv9.$(TRANSL_PAIR).data.gz
+TRAIN_DATA=tables/train.$(TRANSL_PAIR).data.gz
 TEST_DATA=tables/TEDdev.$(TRANSL_PAIR).data.gz
+EVAL_DATA=tables/WMT2016eval.$(TRANSL_PAIR).data.gz
 
 #$(TRAIN_DATA) : tables/Europarl.data.gz tables/NCv9.data.gz
-#$(TRAIN_DATA) : tables/Europarl.$(TRANSL_PAIR).data.gz tables/IWSLT15.$(TRANSL_PAIR).data.gz tables/NCv9.$(TRANSL_PAIR).data.gz
-#	zcat $^ | gzip -c > $@
+$(TRAIN_DATA) : tables/Europarl.$(TRANSL_PAIR).data.gz tables/IWSLT15.$(TRANSL_PAIR).data.gz tables/NCv9.$(TRANSL_PAIR).data.gz
+	zcat $^ | gzip -c > $@
 
 prepare_train_data : $(TRAIN_DATA)
 prepare_dev_data : $(TEST_DATA)
@@ -169,6 +177,11 @@ eval_ml_run :
 	for dir in $(ML_RUN)/*.mlmethod; do \
 		scripts/eval_vw_result.sh $(ORIG_TEST_DATA) $$dir/result/TED* $(TRANSL_PAIR) $$dir/result/official.res $$dir/official.eval; \
 	done
+
+final_eval : $(EVAL_DATA) $(ORIG_EVAL_DATA) $(MODEL)
+	zcat $(word 1,$^) | cut -f2 --complement | $(MLYN_DIR)/scripts/shared_to_nonshared.pl | /net/cluster/TMP/mnovak/tools/vowpal_wabbit/vowpalwabbit/vw -t -i $(word 3,$^) -r res/WMT2016eval.$(TRANSL_PAIR).vw.txt -b 20
+	cat res/WMT2016eval.$(TRANSL_PAIR).vw.txt | scripts/vw_res_to_official_res.pl $(word 2,$^) $(TRANSL_PAIR) > res/WMT2016eval.$(TRANSL_PAIR).final.txt
+	
 
 ####################### DIAGNOSTICS #######################################
 
