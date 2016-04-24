@@ -23,6 +23,9 @@ while (<STDIN>) {
         if (!$2) {
             $new_loss = $new_loss-100;
         }
+        else {
+            $new_loss = 1;
+        }
         $_ =~ s/^(\d+):(\d)/$1:$new_loss/;
     }
     print $_."\n";
