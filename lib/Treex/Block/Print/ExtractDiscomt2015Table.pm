@@ -409,7 +409,7 @@ sub get_trg_feats_over_src_prev_sb {
         my $par = $src_anode->get_parent;
         if (defined $par) {
             my $granpa = $par->get_parent;
-            $granpa != $src_cands[$_];
+            !defined $granpa || ($granpa != $src_cands[$_]);
         }
         else {
             1;
@@ -497,12 +497,13 @@ sub process_anode {
 
     my $class = $trg_anode->wild->{class};
 
-    return if (!defined $class);
+    #return if (!defined $class);
+    return if ($trg_anode->lemma !~ /^REPLACE_/);
 
     my $class_feats = $self->get_class_feats();
     my $shared_feats = $self->get_shared_feats($trg_anode);
     my $feats = [ $class_feats, $shared_feats ];
-    my $losses = $self->get_losses($class);
+    my $losses = defined $class ? $self->get_losses($class) : undef;
     my $src_sent = $trg_anode->get_bundle->get_zone($self->src_language, $self->selector)->sentence;
     $src_sent =~ s/\t/ /g;
     my $comments = [[], $trg_anode->get_address() . " " . $src_sent ];
