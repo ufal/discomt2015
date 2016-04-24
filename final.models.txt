@@ -1,0 +1,11 @@
+UNWEIGHTED:
+en-de	42.54%	ml_runs/run_2016-04-23_10-01-34_3429.en-de_on_complete_training_data/004.21b1e.mlmethod
+de-en	51.62%	ml_runs/run_2016-04-23_09-20-36_30026.de-en_on_complete_training_data/002.4ef65.mlmethod
+
+WEIGHTED POS_NEG:
+en-de	45.63%	ml_runs/run_2016-04-23_12-48-54_15351.en-de_on_complete_training_data.pos-neg_weighted//021.33c0d.mlmethod
+de-en	56.47%	ml_runs/run_2016-04-23_13-08-34_18516.de-en_on_complete_training_data.pos-neg_weighted/001.f2032.mlmethod
+
+WEIGHTED POS:
+en-de	44.52%	ml_runs/run_2016-04-23_13-05-07_23006.en-de_on_complete_training_data.weighted_pos/006.544a7.mlmethod
+de-en	51.20%	ml_runs/run_2016-04-23_13-06-56_16986.de-en_on_complete_training_data.weighted_pos/014.84710.mlmethod
