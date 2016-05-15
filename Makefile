@@ -154,7 +154,8 @@ train_test :
 		TEST_DATA_LIST="TRAIN_DATA TEST_DATA" \
 		TRAIN_DATA=$(TRAIN_DATA) \
 		TEST_DATA=$(TEST_DATA) \
-		ML_METHOD_LIST=conf/ml_method.list \
+		FEATSET_LIST=conf/feats.list \
+		ML_METHOD_LIST=conf/$(TRANSL_PAIR).ml_method.list \
 		LRC=$(LRC) \
 		TMP_DIR=ml_runs \
 		D="$(D)"
@@ -174,7 +175,7 @@ eval : $(ORIG_TEST_DATA) $(RESULT)
 	cat eval/res/$$name.eval
 
 eval_ml_run :
-	for dir in $(ML_RUN)/*.mlmethod; do \
+	for dir in $(ML_RUN)/*.featset/001.*.mlmethod; do \
 		scripts/eval_vw_result.sh $(ORIG_TEST_DATA) $$dir/result/TED* $(TRANSL_PAIR) $$dir/result/official.res $$dir/official.eval; \
 	done
 
